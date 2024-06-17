@@ -1,0 +1,5 @@
+[libraries]
+spring-boot-plugin = "org.springframework.boot:spring-boot-gradle-plugin:3.3.0"
+# Spring Boot の依存バージョンに合わせる
+# https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
+dependency-management-plugin = "io.spring.gradle:dependency-management-plugin:1.1.5"
