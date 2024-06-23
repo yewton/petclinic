@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: petclinic
+  datasource:
+    url: ${POSTGRES_URL:r2dbc:postgresql://localhost/petclinic}
+    username: ${POSTGRES_USER:petclinic}
+    password: ${POSTGRES_PASS:petclinic}
+  sql:
+    init:
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
+      # SQL は冪等に書かれているのでこれでも安全
+      mode: always
+  docker:
+    compose:
+      file: @rootDir@/../docker-compose.yml
