@@ -14,3 +14,5 @@ spring:
   docker:
     compose:
       file: @rootDir@/../docker-compose.yml
+  messages:
+    basename: messages/messages

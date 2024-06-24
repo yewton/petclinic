@@ -11,3 +11,5 @@ spring-boot-plugin = "org.springframework.boot:spring-boot-gradle-plugin:3.3.0"
 dependency-management-plugin = "io.spring.gradle:dependency-management-plugin:1.1.5"
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-allopen = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
+webjars-bootstrap = "org.webjars.npm:bootstrap:5.3.3"
+webjars-font-awesome = "org.webjars.npm:font-awesome:4.7.0"
