@@ -2,6 +2,7 @@
 # Spring Boot の依存バージョンに合わせる
 # https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
 kotlin = "1.9.24"
+jooq = "3.19.10"
 
 [libraries]
 spring-boot-plugin = "org.springframework.boot:spring-boot-gradle-plugin:3.3.0"
@@ -13,3 +14,9 @@ kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", v
 kotlin-allopen = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
 webjars-bootstrap = "org.webjars.npm:bootstrap:5.3.3"
 webjars-font-awesome = "org.webjars.npm:font-awesome:4.7.0"
+jooq-codegen-core = { module = "org.jooq:jooq-codegen", version.ref = "jooq" }
+jooq-meta-core = { module = "org.jooq:jooq-meta", version.ref = "jooq" }
+jooq-meta-extensions = { module = "org.jooq:jooq-meta-extensions", version.ref = "jooq" }
+jooq-codegen-gradle = { module = "org.jooq:jooq-codegen-gradle", version.ref = "jooq" }
+jooq-postgres-extensions = { module = "org.jooq:jooq-postgres-extensions", version.ref = "jooq" }
+jooq-kotlin-coroutines = { module = "org.jooq:jooq-kotlin-coroutines", version.ref = "jooq" }

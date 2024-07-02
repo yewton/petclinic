@@ -8,5 +8,6 @@ dependencies {
     constraints {
         api(libs.webjars.bootstrap)
         api(libs.webjars.font.awesome)
+        api(libs.jooq.kotlin.coroutines)
     }
 }
