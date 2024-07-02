@@ -13,16 +13,17 @@ import org.springframework.r2dbc.connection.TransactionAwareConnectionFactoryPro
 
 @SpringBootApplication
 class PetclinicApplication {
-    // https://github.com/spring-projects/spring-boot/issues/30760#issuecomment-1670644545
-    @Bean
-    fun dslContext(connectionFactory: ConnectionFactory): DSLContext {
-        val settings = Settings().apply {
-            withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
-        }
-        return DSL.using(TransactionAwareConnectionFactoryProxy(connectionFactory), SQLDialect.POSTGRES, settings)
-    }
+  // https://github.com/spring-projects/spring-boot/issues/30760#issuecomment-1670644545
+  @Bean
+  fun dslContext(connectionFactory: ConnectionFactory): DSLContext {
+    val settings =
+      Settings().apply {
+        withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
+      }
+    return DSL.using(TransactionAwareConnectionFactoryProxy(connectionFactory), SQLDialect.POSTGRES, settings)
+  }
 }
 
 fun main(args: Array<String>) {
-    runApplication<PetclinicApplication>(*args)
+  runApplication<PetclinicApplication>(*args)
 }

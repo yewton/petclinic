@@ -1,8 +1,8 @@
 plugins {
-    `kotlin-dsl`
+  `kotlin-dsl`
 }
 
 dependencies {
-    implementation(platform("net.yewton.petclinic.platform:plugins-platform"))
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
+  implementation(platform("net.yewton.petclinic.platform:plugins-platform"))
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
 }

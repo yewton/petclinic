@@ -1,7 +1,7 @@
 dependencyResolutionManagement {
-    repositories {
-        gradlePluginPortal()
-    }
+  repositories {
+    gradlePluginPortal()
+  }
 }
 includeBuild("../platforms")
 

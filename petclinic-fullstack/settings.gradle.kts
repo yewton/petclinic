@@ -1,14 +1,14 @@
 pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-    includeBuild("../build-logic")
+  repositories {
+    gradlePluginPortal()
+  }
+  includeBuild("../build-logic")
 }
 
 dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-    }
+  repositories {
+    mavenCentral()
+  }
 }
 includeBuild("../platforms")
 

@@ -1,3 +1,3 @@
 plugins {
-    id("org.jooq.jooq-codegen-gradle")
+  id("org.jooq.jooq-codegen-gradle")
 }
