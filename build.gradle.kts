@@ -19,3 +19,14 @@ spotless {
     ktlint()
   }
 }
+
+listOf(
+  LifecycleBasePlugin.ASSEMBLE_TASK_NAME,
+  LifecycleBasePlugin.BUILD_TASK_NAME,
+  LifecycleBasePlugin.CHECK_TASK_NAME,
+  LifecycleBasePlugin.CLEAN_TASK_NAME,
+).forEach { taskName ->
+  tasks.named(taskName) {
+    dependsOn(gradle.includedBuild("petclinic-fullstack").task(":$taskName"))
+  }
+}
