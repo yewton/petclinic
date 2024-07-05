@@ -1,23 +1,11 @@
 plugins {
-  id("com.diffplug.spotless") version "6.25.0"
+  base
+  id("net.yewton.petclinic.spotless")
 }
 
 // IDE でソースダウンロードする用
 repositories {
   mavenCentral()
-}
-
-spotless {
-  kotlin {
-    target("**/*.kt")
-    targetExclude("**/build/**/*.kt", "**/jooq/**/*.kt")
-    ktlint().setEditorConfigPath("$rootDir/.editorconfig")
-  }
-  kotlinGradle {
-    target("**/*.gradle.kts")
-    targetExclude("**/build/**/*.kts")
-    ktlint()
-  }
 }
 
 listOf(
@@ -27,6 +15,18 @@ listOf(
   LifecycleBasePlugin.CLEAN_TASK_NAME,
 ).forEach { taskName ->
   tasks.named(taskName) {
-    dependsOn(gradle.includedBuild("petclinic-fullstack").task(":$taskName"))
+    dependsOn(
+      gradle.includedBuilds.map {
+        it.task(":$taskName")
+      },
+    )
   }
+}
+
+tasks.named("spotlessApply") {
+  dependsOn(
+    listOf("build-logic", "petclinic-fullstack")
+      .map { gradle.includedBuild(it) }
+      .map { it.task(":$name") },
+  )
 }

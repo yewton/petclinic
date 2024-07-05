@@ -1,5 +1,6 @@
 plugins {
   id("net.yewton.petclinic.commons")
+  id("net.yewton.petclinic.spotless")
   id("net.yewton.petclinic.dependency-management")
   id("net.yewton.petclinic.spring-boot-app")
   id("net.yewton.petclinic.jooq-codegen")

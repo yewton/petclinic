@@ -3,6 +3,14 @@ dependencyResolutionManagement {
     gradlePluginPortal()
   }
 }
+
+pluginManagement {
+  repositories {
+    gradlePluginPortal()
+  }
+  includeBuild("../lint-logic")
+}
+
 includeBuild("../platforms")
 
 rootProject.name = "build-logic"

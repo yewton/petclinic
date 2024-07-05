@@ -15,5 +15,6 @@ dependencies {
     api(libs.jooq.meta.extensions)
     api(libs.jooq.codegen.gradle)
     api(libs.jooq.postgres.extensions)
+    api(libs.spotless.plugin.gradle)
   }
 }

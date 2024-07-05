@@ -20,3 +20,4 @@ jooq-meta-extensions = { module = "org.jooq:jooq-meta-extensions", version.ref =
 jooq-codegen-gradle = { module = "org.jooq:jooq-codegen-gradle", version.ref = "jooq" }
 jooq-postgres-extensions = { module = "org.jooq:jooq-postgres-extensions", version.ref = "jooq" }
 jooq-kotlin-coroutines = { module = "org.jooq:jooq-kotlin-coroutines", version.ref = "jooq" }
+spotless-plugin-gradle = "com.diffplug.spotless:spotless-plugin-gradle:6.25.0"

@@ -1,5 +1,6 @@
 plugins {
   `kotlin-dsl`
+  id("net.yewton.petclinic.spotless")
 }
 
 dependencies {
