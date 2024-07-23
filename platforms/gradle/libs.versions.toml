@@ -9,7 +9,7 @@ spring-boot-plugin = "org.springframework.boot:spring-boot-gradle-plugin:3.3.2"
 
 # Spring Boot の依存バージョンに合わせる
 # https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
-dependency-management-plugin = "io.spring.gradle:dependency-management-plugin:1.1.5"
+dependency-management-plugin = "io.spring.gradle:dependency-management-plugin:1.1.6"
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-allopen = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
 webjars-bootstrap = "org.webjars.npm:bootstrap:5.3.3"
