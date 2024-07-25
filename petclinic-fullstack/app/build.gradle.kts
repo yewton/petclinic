@@ -23,6 +23,7 @@ dependencies {
   implementation("org.jooq:jooq")
   implementation("org.jooq:jooq-kotlin")
   implementation("org.jooq:jooq-kotlin-coroutines")
+  runtimeOnly("org.springframework.boot:spring-boot-starter-actuator")
   runtimeOnly("org.postgresql:postgresql")
   runtimeOnly("org.postgresql:r2dbc-postgresql")
   runtimeOnly("org.webjars.npm:bootstrap")

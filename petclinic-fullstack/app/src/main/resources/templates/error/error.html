@@ -1,0 +1,12 @@
+<!--/* https://docs.spring.io/spring-boot/api/java/org/springframework/boot/autoconfigure/web/reactive/error/DefaultErrorWebExceptionHandler.html */-->
+<!DOCTYPE html>
+
+<html xmlns:th="https://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'error')}">
+
+  <body>
+    <img src="../../static/resources/images/pets.png" th:src="@{/resources/images/pets.png}"/>
+    <h2>問題が発生しました...</h2>
+    <p th:text="${message}">Exception message</p>
+  </body>
+
+</html>
