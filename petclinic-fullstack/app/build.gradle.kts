@@ -43,6 +43,13 @@ jooq {
   configuration {
     generator {
       name = "org.jooq.codegen.KotlinGenerator"
+
+      generate {
+        isKotlinNotNullPojoAttributes = true
+        isKotlinNotNullRecordAttributes = true
+        isKotlinNotNullInterfaceAttributes = true
+      }
+
       database {
         name = "org.jooq.meta.extensions.ddl.DDLDatabase"
         properties {
