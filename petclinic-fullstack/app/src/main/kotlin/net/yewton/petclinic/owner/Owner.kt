@@ -3,6 +3,7 @@ package net.yewton.petclinic.owner
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import net.yewton.petclinic.model.Person
+import net.yewton.petclinic.pet.Pet
 
 data class Owner(
   val id: Int?,

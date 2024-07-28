@@ -7,6 +7,7 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 
@@ -56,5 +57,16 @@ class OwnerController(val owners: OwnerRepository) {
     val pageSize = 5
     val pageable = PageRequest.of(page - 1, pageSize)
     return owners.findByLastName(lastName, pageable)
+  }
+
+  @GetMapping("/{ownerId}")
+  suspend fun showOwner(
+    @PathVariable("ownerId") ownerId: Int,
+    model: Model,
+  ): String {
+    val owner = owners.findById(ownerId)
+    // TODO 見つからない場合の処理 (参考実装にもないけど)
+    model.addAttribute("owner", owner)
+    return "owners/ownerDetails"
   }
 }
