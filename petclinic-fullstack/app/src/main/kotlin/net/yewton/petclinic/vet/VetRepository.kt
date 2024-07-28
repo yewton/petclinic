@@ -1,5 +1,6 @@
 package net.yewton.petclinic.vet
 
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import net.yewton.petclinic.jooq.tables.references.VETS
@@ -13,7 +14,6 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import reactor.core.publisher.Flux
 
 @Component
 class VetRepository(private val create: DSLContext) {
@@ -33,12 +33,12 @@ class VetRepository(private val create: DSLContext) {
         .limit(pageable.pageSize)
         .offset(pageable.offset)
     val result =
-      Flux.from(query)
+      query.asFlow()
         .map {
           val vet = Vet(it.get(VETS.ID), it.get(VETS.FIRST_NAME), it.get(VETS.LAST_NAME), it.value4())
           val totalCount = it.value5()
           vet to totalCount
-        }.asFlow().toList().toMap()
+        }.toList().toMap()
     return PageImpl(result.keys.toList(), pageable, result.values.first().toLong())
   }
 }
