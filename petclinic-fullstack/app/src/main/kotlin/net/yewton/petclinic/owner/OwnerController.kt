@@ -33,7 +33,9 @@ class OwnerController(val owners: OwnerRepository) {
       result.rejectValue("lastName", "notFound", "not found")
       return "owners/findOwners"
     }
-    // TODO 結果が一件だけの場合の処理
+    if (ownersResults.totalElements == 1L) {
+      return "redirect:/owners/${ownersResults.first().id}"
+    }
     return addPaginationModel(page, model, ownersResults)
   }
 
