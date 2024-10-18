@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16.4@sha256:026d0ab72b34310b68160ab9299aa1add5544e4dc3243456b94f83cb1c119c2c
+    image: postgres:16.4@sha256:91f464e7ba0ad91a106c94cff079fb4384139291b8c0502fd36989cf2c788bbb
     ports:
       - "5432:5432"
     environment:
