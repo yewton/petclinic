@@ -12,6 +12,7 @@ dependencyResolutionManagement {
   }
 }
 includeBuild("../platforms")
+includeBuild("../libs/r2dbc-postgresql")
 
 rootProject.name = "petclinic-fullstack"
 include("app")
