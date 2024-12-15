@@ -1,0 +1,103 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+livedebugging {
+  enabled = true
+}
+
+otelcol.receiver.otlp "otlp_receiver" {
+    grpc {
+        endpoint = "0.0.0.0:4317"
+    }
+
+    http {
+        endpoint = "0.0.0.0:4318"
+    }
+
+    output {
+      metrics = [otelcol.processor.batch.default.input]
+      logs    = [otelcol.processor.batch.default.input]
+      traces  = [otelcol.processor.batch.default.input]
+    }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.prometheus.default.input]
+    logs    = [otelcol.exporter.loki.default.input, otelcol.exporter.debug.default.input]
+    traces  = [otelcol.exporter.otlp.tempo.input, otelcol.connector.spanlogs.autologging.input]
+  }
+}
+
+otelcol.exporter.prometheus "default" {
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+  }
+}
+
+otelcol.exporter.debug "default" {}
+
+otelcol.exporter.loki "default" {
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "http://tempo:4317"
+    tls {
+      insecure = true
+      insecure_skip_verify = true
+    }
+  }
+}
+
+otelcol.connector.spanlogs "autologging" {
+    spans = false
+    roots = true
+    processes = false
+    span_attributes = [ "http.method", "http.target", "http.status_code" ]
+
+    overrides {
+        trace_id_key = "traceId"
+    }
+    output {
+        logs = [otelcol.exporter.loki.autologging.input]
+    }
+}
+
+otelcol.exporter.loki "autologging" {
+    forward_to = [loki.process.autologging.receiver]
+}
+
+loki.process "autologging" {
+    stage.json {
+        expressions = { "body" = "" }
+    }
+    stage.output {
+        source = "body"
+    }
+
+    forward_to = [loki.write.autologging.receiver]
+}
+
+loki.write "autologging" {
+    external_labels = {
+        job = "alloy",
+    }
+
+    endpoint {
+        url = "http://loki:3100/loki/api/v1/push"
+    }
+}

@@ -9,5 +9,7 @@ dependencies {
     api(libs.webjars.bootstrap)
     api(libs.webjars.font.awesome)
     api(libs.jooq.kotlin.coroutines)
+    api(libs.opentelemetry.logback.appender)
+    api(libs.opentelemetry.logback.mdc)
   }
 }

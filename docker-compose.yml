@@ -7,3 +7,53 @@ services:
       - POSTGRES_PASSWORD=petclinic
       - POSTGRES_USER=petclinic
       - POSTGRES_DB=petclinic
+  alloy:
+    image: grafana/alloy:v1.5.1
+    ports:
+      - "12345:12345" # alloy
+      - "4317:4317" # OTLP/gRPC
+      - "4318:4318" # OTLP/HTTP
+#      - "12348:12348" # ???
+#      - "6832:6832" # jaeger.thrift over binary thrift protocol
+#      - "55679:55679" # zpages https://github.com/open-telemetry/opentelemetry-collector/blob/main/extension/zpagesextension/README.md
+    volumes:
+      - "./config/config.alloy:/etc/alloy/config.alloy"
+    command: [
+      "run",
+      "--server.http.listen-addr=0.0.0.0:12345",
+      "--stability.level=experimental", # livedebugging 用
+      "/etc/alloy/config.alloy",
+    ]
+  grafana:
+    image: grafana/grafana:11.2.0
+    volumes:
+      - "./config/grafana/provisioning:/etc/grafana/provisioning"
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor traceToMetrics traceToProfiles datatrails
+      - GF_INSTALL_PLUGINS=grafana-lokiexplore-app,grafana-exploretraces-app,grafana-pyroscope-app
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+  mimir: # メトリクス
+    image: grafana/mimir:2.13.0
+    command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
+    ports:
+      - "9009:9009"
+    volumes:
+      - "./config/mimir.yaml:/etc/mimir.yaml"
+  loki: # ログ
+    image: grafana/loki:3.2.0
+    command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - "./config/loki.yaml:/etc/loki/loki.yaml"
+  tempo: # トレース
+    image: grafana/tempo:2.6.0
+    ports:
+      - "3200:3200"
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - "./config/tempo.yaml:/etc/tempo.yaml"

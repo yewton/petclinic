@@ -14,6 +14,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-validation")
+  implementation("org.springframework.boot:spring-boot-starter-aop") {
+    because("@NewSpan などを使えるようにするため")
+  }
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -24,11 +27,26 @@ dependencies {
   implementation("org.jooq:jooq")
   implementation("org.jooq:jooq-kotlin")
   implementation("org.jooq:jooq-kotlin-coroutines")
+
+  // Tracing
+  implementation("io.micrometer:micrometer-core")
+  implementation("io.micrometer:micrometer-tracing-bridge-otel")
+  implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+  implementation("io.r2dbc:r2dbc-proxy")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0")
+
+  // Logs
+  implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0")
+
   runtimeOnly("org.springframework.boot:spring-boot-starter-actuator")
   runtimeOnly("org.postgresql:postgresql")
   runtimeOnly("org.postgresql:r2dbc-postgresql")
   runtimeOnly("org.webjars.npm:bootstrap")
   runtimeOnly("org.webjars.npm:font-awesome")
+
+  // Metrics
+  runtimeOnly("io.micrometer:micrometer-registry-otlp")
+
   developmentOnly("org.springframework.boot:spring-boot-docker-compose")
   developmentOnly("org.springframework.boot:spring-boot-devtools")
   testImplementation("org.springframework.boot:spring-boot-starter-test")

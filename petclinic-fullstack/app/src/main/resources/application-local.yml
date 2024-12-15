@@ -3,6 +3,9 @@ logging:
     org.springframework.r2dbc: DEBUG
     io.r2dbc.postgresql.QUERY: DEBUG
     io.r2dbc.postgresql.PARAM: DEBUG
+    org.springframework.transaction.reactive.AbstractReactiveTransactionManager: DEBUG
+    io.r2dbc.postgresql.client.ReactorNettyClient: DEBUG
+    web: DEBUG
 spring:
   sql:
     init:
@@ -13,3 +16,24 @@ spring:
   docker:
     compose:
       file: @rootDir@/../docker-compose.yml
+management:
+  otlp:
+    metrics:
+      export:
+        url: "http://localhost:4318/v1/metrics"
+    logging:
+      endpoint: "http://localhost:4317"
+      transport: grpc
+    tracing:
+      endpoint: "http://localhost:4317"
+      transport: grpc
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  tracing:
+    sampling:
+      probability: 1.0

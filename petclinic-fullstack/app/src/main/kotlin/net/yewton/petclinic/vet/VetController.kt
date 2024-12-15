@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
+import reactor.core.publisher.Mono
 
 @Controller
 class VetController(private val vetRepository: VetRepository) {
@@ -18,6 +19,15 @@ class VetController(private val vetRepository: VetRepository) {
     val paginated = findPaginated(page)
     return addPaginationModel(page, paginated, model)
   }
+
+  @GetMapping("/vetsR.html")
+  fun showVetListR(
+    @RequestParam(defaultValue = "1") page: Int,
+    model: Model,
+  ): Mono<String> =
+    findPaginatedR(page).map {
+      addPaginationModel(page, it, model)
+    }
 
   private fun addPaginationModel(
     page: Int,
@@ -36,5 +46,11 @@ class VetController(private val vetRepository: VetRepository) {
     val pageSize = 5
     val pageable: Pageable = PageRequest.of(page - 1, pageSize)
     return vetRepository.findAll(pageable)
+  }
+
+  private fun findPaginatedR(page: Int): Mono<Page<Vet>> {
+    val pageSize = 5
+    val pageable: Pageable = PageRequest.of(page - 1, pageSize)
+    return vetRepository.findAllR(pageable)
   }
 }
