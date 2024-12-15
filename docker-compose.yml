@@ -8,7 +8,7 @@ services:
       - POSTGRES_USER=petclinic
       - POSTGRES_DB=petclinic
   alloy:
-    image: grafana/alloy:v1.5.1
+    image: grafana/alloy:v1.5.1@sha256:01a63f4e032ce54ee94b22049bc27f597e74f85566478c377f4b5c7f020c1eb3
     ports:
       - "12345:12345" # alloy
       - "4317:4317" # OTLP/gRPC
@@ -25,7 +25,7 @@ services:
       "/etc/alloy/config.alloy",
     ]
   grafana:
-    image: grafana/grafana:11.2.0
+    image: grafana/grafana:11.2.0@sha256:408afb9726de5122b00a2576763a8a57a3c86d5b0eff5305bc994ceb3eb96c3f
     volumes:
       - "./config/grafana/provisioning:/etc/grafana/provisioning"
     ports:
@@ -37,21 +37,21 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
   mimir: # メトリクス
-    image: grafana/mimir:2.13.0
+    image: grafana/mimir:2.13.0@sha256:8bdec4684b1a8011d5f5f7710fcfd89c42139b181978325b65747e47376f40d7
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
     volumes:
       - "./config/mimir.yaml:/etc/mimir.yaml"
   loki: # ログ
-    image: grafana/loki:3.2.0
+    image: grafana/loki:3.2.0@sha256:882e30c20683a48a8b7ca123e6c19988980b4bd13d2ff221dfcbef0fdc631694
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
     volumes:
       - "./config/loki.yaml:/etc/loki/loki.yaml"
   tempo: # トレース
-    image: grafana/tempo:2.6.0
+    image: grafana/tempo:2.6.0@sha256:f55a8a1937fff0af3a760d376b476c8327fb30e432d5e7630d7938b67691e822
     ports:
       - "3200:3200"
     command: [ "-config.file=/etc/tempo.yaml" ]
