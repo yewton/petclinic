@@ -1,7 +1,7 @@
 [versions]
 # Spring Boot の依存バージョンに合わせる
 # https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
-kotlin = "1.9.24"
+kotlin = "1.9.25"
 jooq = "3.19.16"
 opentelemetry = "2.10.0-alpha"
 
