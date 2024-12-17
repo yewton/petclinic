@@ -37,7 +37,7 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
   mimir: # メトリクス
-    image: grafana/mimir:2.13.0@sha256:8bdec4684b1a8011d5f5f7710fcfd89c42139b181978325b65747e47376f40d7
+    image: grafana/mimir:2.14.2@sha256:2d3912435771d356ec03ae4729fb584b4d76a5f035d9dda40b563a55bb6760e3
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
