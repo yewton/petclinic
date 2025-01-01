@@ -1,5 +1,5 @@
 logging {
-  level  = "info"
+  level  = "debug"
   format = "logfmt"
 }
 
@@ -41,7 +41,9 @@ prometheus.remote_write "default" {
   }
 }
 
-otelcol.exporter.debug "default" {}
+otelcol.exporter.debug "default" {
+  verbosity = "detailed"
+}
 
 otelcol.exporter.loki "default" {
   forward_to = [loki.write.default.receiver]
@@ -64,10 +66,10 @@ otelcol.exporter.otlp "tempo" {
 }
 
 otelcol.connector.spanlogs "autologging" {
-    spans = false
+    spans = true
     roots = true
     processes = false
-    span_attributes = [ "http.method", "http.target", "http.status_code" ]
+    span_attributes = [ "method", "http.url", "status" ]
 
     overrides {
         trace_id_key = "traceId"

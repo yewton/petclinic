@@ -1,6 +1,10 @@
 # Disable multi-tenancy, ensuring a single tenant for all log streams.
 auth_enabled: false
 
+pattern_ingester:
+  # Whether the pattern ingester is enabled.
+  enabled: true
+
 # Configuration block for the Loki server.
 server:
   http_listen_port: 3100  # Listen on port 3100 for all incoming traffic.
@@ -10,6 +14,7 @@ server:
 # overrides block). In this case, volume usage is be enabled globally (as there is one tenant).
 # This is used by the Logs Explorer app in Grafana.
 limits_config:
+  allow_structured_metadata: true
   volume_enabled: true
 
 # The common block is used to set options for all of the components that make up Loki. These can be overridden using
