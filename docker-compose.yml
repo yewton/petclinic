@@ -44,7 +44,7 @@ services:
     volumes:
       - "./config/mimir.yaml:/etc/mimir.yaml"
   loki: # ログ
-    image: grafana/loki:3.2.0@sha256:882e30c20683a48a8b7ca123e6c19988980b4bd13d2ff221dfcbef0fdc631694
+    image: grafana/loki:3.3.2@sha256:8af2de1abbdd7aa92b27c9bcc96f0f4140c9096b507c77921ffddf1c6ad6c48f
     command: ["-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
