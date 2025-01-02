@@ -4,15 +4,15 @@
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>
-        %d{HH:mm:ss.SSS} [%thread] trace_id=%X{trace_id} span_id=%X{span_id} trace_flags=%X{trace_flags} %-5level %logger{36} - %msg%n
+        %d{HH:mm:ss.SSS} [%thread] trace_id=%X{traceId:-null} span_id=%X{spanId:-null} trace_flags=%X{trace_flags:-01} %-5level %logger{36} - %msg%n
       </pattern>
     </encoder>
   </appender>
-  <appender name="WrappedConsole" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
-    <appender-ref ref="console"/>
-  </appender>
   <appender name="OpenTelemetry"
             class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
     <captureExperimentalAttributes>true</captureExperimentalAttributes>
     <captureCodeAttributes>true</captureCodeAttributes>
     <captureMarkerAttribute>true</captureMarkerAttribute>
@@ -22,7 +22,7 @@
   </appender>
 
   <root level="INFO">
-    <appender-ref ref="WrappedConsole"/>
+    <appender-ref ref="console"/>
     <appender-ref ref="OpenTelemetry"/>
   </root>
 

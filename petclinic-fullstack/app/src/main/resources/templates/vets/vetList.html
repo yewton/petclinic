@@ -28,30 +28,36 @@
   <span>Pages:</span>
   <span>[</span>
   <span th:each="i: ${#numbers.sequence(1, totalPages)}">
-      <a th:if="${currentPage != i}" th:href="@{'/vets.html?page=__${i}__'}">[[${i}]]</a>
+      <a th:if="${currentPage != i}" th:href="@{/vets.html(page=${i},dbClient=${vetParam.dbClient},reactor=${vetParam.reactor})}">[[${i}]]</a>
       <span th:unless="${currentPage != i}">[[${i}]]</span>
     </span>
   <span>]&nbsp;</span>
   <span>
-      <a th:if="${currentPage > 1}" th:href="@{'/vets.html?page=1'}" title="First"
+      <a th:if="${currentPage > 1}" th:href="@{/vets.html(page=1,dbClient=${vetParam.dbClient},reactor=${vetParam.reactor})}" title="First"
          class="fa fa-fast-backward"></a>
       <span th:unless="${currentPage > 1}" title="First" class="fa fa-fast-backward"></span>
     </span>
   <span>
-      <a th:if="${currentPage > 1}" th:href="@{'/vets.html?page=__${currentPage - 1}__'}" title="Previous"
+      <a th:if="${currentPage > 1}" th:href="@{/vets.html(page=${currentPage - 1},dbClient=${vetParam.dbClient},reactor=${vetParam.reactor})}" title="Previous"
          class="fa fa-step-backward"></a>
       <span th:unless="${currentPage > 1}" title="Previous" class="fa fa-step-backward"></span>
     </span>
   <span>
-      <a th:if="${currentPage < totalPages}" th:href="@{'/vets.html?page=__${currentPage + 1}__'}" title="Next"
+      <a th:if="${currentPage < totalPages}" th:href="@{/vets.html(page=${currentPage + 1},dbClient=${vetParam.dbClient},reactor=${vetParam.reactor})}" title="Next"
          class="fa fa-step-forward"></a>
       <span th:unless="${currentPage < totalPages}" title="Next" class="fa fa-step-forward"></span>
     </span>
   <span>
-      <a th:if="${currentPage < totalPages}" th:href="@{'/vets.html?page=__${totalPages}__'}" title="Last"
+      <a th:if="${currentPage < totalPages}" th:href="@{/vets.html(page=${totalPages},dbClient=${vetParam.dbClient},reactor=${vetParam.reactor})}" title="Last"
          class="fa fa-fast-forward"></a>
       <span th:unless="${currentPage < totalPages}" title="Last" class="fa fa-fast-forward"></span>
     </span>
+</div>
+<div>
+    <a th:href="@{/vets.html}" class="btn btn-primary">Coroutine + JOOQ</a>
+    <a th:href="@{/vets.html(dbClient='SPRING')}" class="btn btn-primary">Coroutine + Spring R2DBC Core DatabaseClient</a>
+    <a th:href="@{/vets.html(reactor=true)}" class="btn btn-primary">Reactor + JOOQ</a>
+    <a th:href="@{/vets.html(dbClient='SPRING',reactor=true)}" class="btn btn-primary">Reactor + Spring R2DBC Core DatabaseClient</a>
 </div>
 </body>
 </html>

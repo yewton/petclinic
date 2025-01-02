@@ -1,10 +1,10 @@
 logging:
   level:
-    org.springframework.r2dbc: DEBUG
-    io.r2dbc.postgresql.QUERY: DEBUG
-    io.r2dbc.postgresql.PARAM: DEBUG
-    org.springframework.transaction.reactive.AbstractReactiveTransactionManager: DEBUG
-    io.r2dbc.postgresql.client.ReactorNettyClient: DEBUG
+    io.r2dbc: TRACE
+    org.jooq: TRACE
+    org.springframework.r2dbc: TRACE
+    org.springframework.transaction.interceptor.TransactionInterceptor: TRACE
+    org.springframework.transaction.reactive.AbstractReactiveTransactionManager: TRACE
     web: DEBUG
 spring:
   sql:

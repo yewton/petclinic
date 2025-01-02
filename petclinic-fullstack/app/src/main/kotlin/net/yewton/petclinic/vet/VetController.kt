@@ -2,31 +2,52 @@ package net.yewton.petclinic.vet
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.RequestParam
 import reactor.core.publisher.Mono
 
 @Controller
 class VetController(private val vetRepository: VetRepository) {
-  @GetMapping("/vets.html")
-  suspend fun showVetList(
-    @RequestParam(defaultValue = "1") page: Int,
-    model: Model,
-  ): String {
-    val paginated = findPaginated(page)
-    return addPaginationModel(page, paginated, model)
+  enum class DBClient {
+    JOOQ,
+    SPRING,
   }
 
-  @GetMapping("/vetsR.html")
-  fun showVetListR(
+  data class VetParam(val page: Int, val dbClient: DBClient, val reactor: Boolean)
+
+  @ModelAttribute
+  fun param(
     @RequestParam(defaultValue = "1") page: Int,
+    @RequestParam(defaultValue = "JOOQ") dbClient: DBClient,
+    @RequestParam(defaultValue = "false") reactor: Boolean,
+  ) = VetParam(page, dbClient, reactor)
+
+  @GetMapping("/vets.html", params = ["!reactor"])
+  suspend fun showVetListCoroutine(
+    @ModelAttribute param: VetParam,
+    model: Model,
+  ): String {
+    val paginated =
+      when (param.dbClient) {
+        DBClient.JOOQ -> vetRepository.findAllCoroutineJooq(pageable(param.page))
+        DBClient.SPRING -> vetRepository.findAllCoroutineSpring(pageable(param.page))
+      }
+    return addPaginationModel(param.page, paginated, model)
+  }
+
+  @GetMapping("/vets.html", params = ["reactor"])
+  fun showVetListReactor(
+    @ModelAttribute param: VetParam,
     model: Model,
   ): Mono<String> =
-    findPaginatedR(page).map {
-      addPaginationModel(page, it, model)
+    when (param.dbClient) {
+      DBClient.JOOQ -> vetRepository.findAllReactorJooq(pageable(param.page))
+      DBClient.SPRING -> vetRepository.findAllReactorSpring(pageable(param.page))
+    }.map {
+      addPaginationModel(param.page, it, model)
     }
 
   private fun addPaginationModel(
@@ -42,15 +63,5 @@ class VetController(private val vetRepository: VetRepository) {
     return "vets/vetList"
   }
 
-  private suspend fun findPaginated(page: Int): Page<Vet> {
-    val pageSize = 5
-    val pageable: Pageable = PageRequest.of(page - 1, pageSize)
-    return vetRepository.findAll(pageable)
-  }
-
-  private fun findPaginatedR(page: Int): Mono<Page<Vet>> {
-    val pageSize = 5
-    val pageable: Pageable = PageRequest.of(page - 1, pageSize)
-    return vetRepository.findAllR(pageable)
-  }
+  private fun pageable(page: Int) = PageRequest.of(page - 1, 5)
 }

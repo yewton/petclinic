@@ -9,7 +9,6 @@ plugins {
 group = "$group.apps"
 
 dependencies {
-  implementation("org.springframework.boot:spring-boot-starter-jooq")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
   implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -17,8 +16,12 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-aop") {
     because("@NewSpan などを使えるようにするため")
   }
+
+  implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+  implementation("io.projectreactor:reactor-core-micrometer")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   // https://docs.spring.io/spring-data/relational/reference/kotlin/coroutines.html#kotlin.coroutines.dependencies
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
@@ -33,7 +36,6 @@ dependencies {
   implementation("io.micrometer:micrometer-tracing-bridge-otel")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp")
   implementation("io.r2dbc:r2dbc-proxy")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0")
 
   // Logs
   implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0")

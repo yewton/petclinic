@@ -15,7 +15,7 @@ class VetRepositoryTest : WithAssertions {
   @Test
   fun myTest() =
     runTest {
-      val result = vetRepository.findAll(PageRequest.of(0, 5))
+      val result = vetRepository.findAllCoroutineJooq(PageRequest.of(0, 5))
       assertThat(result.size).isEqualTo(5)
       assertThat(result.content.map { ("${it.firstName} ${it.lastName}" to it.specialties?.map { sp -> sp.name }) })
         .isEqualTo(
