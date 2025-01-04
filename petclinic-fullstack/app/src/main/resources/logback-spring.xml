@@ -15,7 +15,9 @@
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>INFO</level>
     </filter>
+    <!-- thread.name , thread.id を追加する -->
     <captureExperimentalAttributes>true</captureExperimentalAttributes>
+    <!-- https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/attributes.md#source-code-attributes を追加する -->
     <captureCodeAttributes>true</captureCodeAttributes>
     <captureMarkerAttribute>true</captureMarkerAttribute>
     <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
