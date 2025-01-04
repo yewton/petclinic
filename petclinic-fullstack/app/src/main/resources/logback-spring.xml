@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+  <!-- https://opentelemetry.io/docs/specs/semconv/attributes-registry/process/#process-pid -->
+  <springProperty scope="context" name="process.pid" source="spring.application.pid" />
 
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
