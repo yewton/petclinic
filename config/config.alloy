@@ -25,6 +25,22 @@ otelcol.receiver.otlp "otlp_receiver" {
 
 otelcol.processor.batch "default" {
   output {
+    metrics = [otelcol.processor.transform.default.input]
+    logs    = [otelcol.processor.transform.default.input]
+    traces  = [otelcol.processor.transform.default.input]
+  }
+}
+
+otelcol.processor.transform "default" {
+  log_statements {
+    context = "log"
+    statements = [
+      `set(trace_id.string,attributes["traceId"]) where trace_id.string == "00000000000000000000000000000000"`,
+      `set(span_id.string,attributes["spanId"]) where span_id.string == "0000000000000000"`,
+    ]
+  }
+
+  output {
     metrics = [otelcol.exporter.prometheus.default.input]
     logs    = [otelcol.exporter.loki.default.input, otelcol.exporter.debug.default.input]
     traces  = [otelcol.exporter.otlp.tempo.input, otelcol.connector.spanlogs.autologging.input]
