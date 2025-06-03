@@ -45,6 +45,7 @@ dependencies {
   runtimeOnly("org.postgresql:r2dbc-postgresql")
   runtimeOnly("org.webjars.npm:bootstrap")
   runtimeOnly("org.webjars.npm:font-awesome")
+  runtimeOnly("org.webjars.npm:htmx.org")
 
   // Metrics
   runtimeOnly("io.micrometer:micrometer-registry-otlp")

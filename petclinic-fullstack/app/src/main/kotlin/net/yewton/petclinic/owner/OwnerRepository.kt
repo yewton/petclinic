@@ -67,6 +67,9 @@ class OwnerRepository(private val create: DSLContext) {
         val totalCount = it.value8()
         owner to totalCount
       }.toList().toMap()
+    if (result.isEmpty()) {
+      return Page.empty(pageable)
+    }
     return PageImpl(result.keys.toList(), pageable, result.values.first().toLong())
   }
 

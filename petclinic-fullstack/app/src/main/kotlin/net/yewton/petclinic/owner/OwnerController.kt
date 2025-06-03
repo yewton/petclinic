@@ -2,12 +2,16 @@ package net.yewton.petclinic.owner
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.HttpStatus
+import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 
@@ -15,9 +19,31 @@ import org.springframework.web.bind.annotation.RequestParam
 @RequestMapping("/owners")
 class OwnerController(val owners: OwnerRepository) {
   @GetMapping("find")
-  fun initFindForm(model: Model): String {
+  fun initFindForm(
+    model: Model,
+    @RequestHeader("HX-Request", required = false, defaultValue = "false") isHxRequest: Boolean): String {
     model.addAttribute("owner", OwnerCriteria())
+    if (isHxRequest) {
+      return "owners/findOwners :: #search-owner-form"
+    }
     return "owners/findOwners"
+  }
+
+  @PostMapping(headers = ["HX-Request"])
+  suspend fun processFindFormHtmx(
+    @ModelAttribute("owner") owner: OwnerCriteria,
+    result: BindingResult,
+    model: Model,
+    response: ServerHttpResponse
+  ): String {
+    model.addAttribute("owner", owner)
+    val ownersResults = findPaginatedForOwnersLastName(1, owner.lastName)
+    if (ownersResults.isEmpty) {
+      result.rejectValue("lastName", "notFound", "not found")
+      response.statusCode = HttpStatus.UNPROCESSABLE_ENTITY
+      return "owners/findOwners :: #search-owner-form"
+    }
+    return addPaginationModel(1, model, ownersResults, true)
   }
 
   @GetMapping
@@ -36,19 +62,23 @@ class OwnerController(val owners: OwnerRepository) {
     if (ownersResults.totalElements == 1L) {
       return "redirect:/owners/${ownersResults.first().id}"
     }
-    return addPaginationModel(page, model, ownersResults)
+    return addPaginationModel(page, model, ownersResults, false)
   }
 
   private fun addPaginationModel(
     page: Int,
     model: Model,
     paginated: Page<Owner>,
+    isHxRequest: Boolean
   ): String {
     val listOwners = paginated.content
     model.addAttribute("currentPage", page)
     model.addAttribute("totalPages", paginated.totalPages)
     model.addAttribute("totalItems", paginated.totalElements)
     model.addAttribute("listOwners", listOwners)
+    if (isHxRequest) {
+      return "owners/ownersList :: #owners"
+    }
     return "owners/ownersList"
   }
 

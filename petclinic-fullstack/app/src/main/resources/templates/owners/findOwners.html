@@ -7,15 +7,15 @@
 
   <form th:object="${owner}" th:action="@{/owners}" method="get"
     class="form-horizontal" id="search-owner-form">
-    <div class="form-group">
+    <div class="form-group" id="search-owner-form-fields">
       <div class="control-group" id="lastNameGroup">
         <label class="col-sm-2 control-label">姓 </label>
         <div class="col-sm-10">
           <input class="form-control" th:field="*{lastName}" size="30"
-            maxlength="80" /> <span class="help-inline"><div
+            maxlength="80" /> <div class="help-block"><div
               th:if="${#fields.hasAnyErrors()}">
               <p th:each="err : ${#fields.allErrors()}" th:text="${err}">Error</p>
-            </div></span>
+            </div></div>
         </div>
       </div>
     </div>
