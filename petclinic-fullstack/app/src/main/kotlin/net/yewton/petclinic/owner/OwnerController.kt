@@ -21,7 +21,8 @@ class OwnerController(val owners: OwnerRepository) {
   @GetMapping("find")
   fun initFindForm(
     model: Model,
-    @RequestHeader("HX-Request", required = false, defaultValue = "false") isHxRequest: Boolean): String {
+    @RequestHeader("HX-Request", required = false, defaultValue = "false") isHxRequest: Boolean,
+  ): String {
     model.addAttribute("owner", OwnerCriteria())
     if (isHxRequest) {
       return "owners/findOwners :: #search-owner-form"
@@ -34,7 +35,7 @@ class OwnerController(val owners: OwnerRepository) {
     @ModelAttribute("owner") owner: OwnerCriteria,
     result: BindingResult,
     model: Model,
-    response: ServerHttpResponse
+    response: ServerHttpResponse,
   ): String {
     model.addAttribute("owner", owner)
     val ownersResults = findPaginatedForOwnersLastName(1, owner.lastName)
@@ -69,7 +70,7 @@ class OwnerController(val owners: OwnerRepository) {
     page: Int,
     model: Model,
     paginated: Page<Owner>,
-    isHxRequest: Boolean
+    isHxRequest: Boolean,
   ): String {
     val listOwners = paginated.content
     model.addAttribute("currentPage", page)
