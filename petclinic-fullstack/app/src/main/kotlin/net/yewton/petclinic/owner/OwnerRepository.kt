@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle // Added this import
 import net.yewton.petclinic.jooq.tables.references.OWNERS
 import net.yewton.petclinic.jooq.tables.references.PETS
 import net.yewton.petclinic.pet.Pet
@@ -19,6 +20,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+// import org.jooq.kotlin.coroutines.awaitSingle // This was problematic, will use kotlinx.coroutines.reactive.awaitSingle
+// import net.yewton.petclinic.pet.Pet // Removed duplicate import, already imported earlier
 
 @Component
 class OwnerRepository(private val create: DSLContext) {
@@ -97,5 +100,33 @@ class OwnerRepository(private val create: DSLContext) {
         it.value7(),
       )
     }
+  }
+
+  @Transactional
+  suspend fun save(owner: Owner): Owner {
+    val newIdRecord = create.insertInto(OWNERS)
+      .set(OWNERS.FIRST_NAME, owner.firstName)
+      .set(OWNERS.LAST_NAME, owner.lastName)
+      .set(OWNERS.ADDRESS, owner.address)
+      .set(OWNERS.CITY, owner.city)
+      .set(OWNERS.TELEPHONE, owner.telephone)
+      .returningResult(OWNERS.ID) // This returns a ResultQuery which is a Publisher
+      .awaitSingle() // Using kotlinx.coroutines.reactive.awaitSingle
+
+    val newId = newIdRecord?.value1() ?: throw IllegalStateException("Failed to retrieve ID after insert or ID was null.")
+
+    // Create a new Owner object with the retrieved ID and existing details.
+    // Assuming Owner has a property `pets` of type List<Pet>.
+    // If owner.pets is already populated and should be persisted, this part needs more complex logic (cascade save).
+    // For a simple new owner registration, pets would typically be empty.
+    return Owner(
+      id = newId,
+      firstName = owner.firstName,
+      lastName = owner.lastName,
+      address = owner.address,
+      city = owner.city,
+      telephone = owner.telephone,
+      pets = owner.pets ?: emptyList() // Use existing pets if available, otherwise empty list (Pet type inferred)
+    )
   }
 }

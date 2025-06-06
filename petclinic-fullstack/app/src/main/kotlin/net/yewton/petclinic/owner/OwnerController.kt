@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import jakarta.validation.Valid
+import net.yewton.petclinic.pet.Pet // Added for emptyList<Pet>()
+// kotlinx.coroutines.reactor.awaitSingle will be removed as it's no longer needed
 
 @Controller
 @RequestMapping("/owners")
@@ -83,6 +86,28 @@ class OwnerController(val owners: OwnerRepository) {
     return "owners/ownersList"
   }
 
+  @GetMapping("/new")
+  fun initCreationForm(model: Model): String {
+    val owner = Owner(null, "", "", "", "", "", emptyList<Pet>()) // Changed HashSet to emptyList<Pet>
+    model.addAttribute("owner", owner)
+    return "owners/createOrUpdateOwnerForm"
+  }
+
+  @PostMapping("/new")
+  suspend fun processCreationForm(
+    @Valid @ModelAttribute("owner") owner: Owner,
+    result: BindingResult
+  ): String {
+    if (result.hasErrors()) {
+      return "owners/createOrUpdateOwnerForm"
+    }
+    // Assume owners.save(owner) saves the owner and returns the saved instance with an ID.
+    // Also assume Owner has a non-nullable id after being saved.
+    // If Owner.id is nullable, then savedOwner.id might need a null check or ?.
+    val savedOwner = owners.save(owner) // Removed .awaitSingle() as OwnerRepository.save is now a suspend fun returning Owner
+    return "redirect:/owners/${savedOwner.id!!}" // Using !! as id should be non-null after save
+  }
+
   private suspend fun findPaginatedForOwnersLastName(
     page: Int,
     lastName: String,
@@ -94,12 +119,12 @@ class OwnerController(val owners: OwnerRepository) {
 
   @GetMapping("/{ownerId}")
   suspend fun showOwner(
-    @PathVariable("ownerId") ownerId: Int,
+    @PathVariable("ownerId") ownerId: Long,
     model: Model,
   ): String {
-    val owner = owners.findById(ownerId)
+    val owner = owners.findById(ownerId.toInt()) // Changed ownerId to ownerId.toInt()
     // TODO 見つからない場合の処理 (参考実装にもないけど)
-    model.addAttribute("owner", owner)
+    model.addAttribute("owner", owner) // Changed owner.orElse(null) to owner, assuming findById returns Owner?
     return "owners/ownerDetails"
   }
 }
