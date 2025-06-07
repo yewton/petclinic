@@ -63,7 +63,7 @@ class OwnerRepository(private val create: DSLContext) {
             it[OWNERS.ADDRESS],
             it[OWNERS.CITY],
             it[OWNERS.TELEPHONE],
-            it.value7(),
+            it.value7().toSet(),
           )
         val totalCount = it.value8()
         owner to totalCount
@@ -95,7 +95,7 @@ class OwnerRepository(private val create: DSLContext) {
         it[OWNERS.ADDRESS],
         it[OWNERS.CITY],
         it[OWNERS.TELEPHONE],
-        it.value7(),
+        it.value7().toSet(),
       )
     }
   }
