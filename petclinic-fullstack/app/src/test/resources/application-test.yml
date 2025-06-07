@@ -3,5 +3,6 @@ spring:
     url: "r2dbc:tc:postgresql:///petclinic?TC_IMAGE_TAG=16.3&TC_TMPFS=/testtmpfs:rw"
   sql:
     init:
+      schema-locations: classpath:db/schema.sql
       data-locations: classpath:db/data.sql
       mode: always
