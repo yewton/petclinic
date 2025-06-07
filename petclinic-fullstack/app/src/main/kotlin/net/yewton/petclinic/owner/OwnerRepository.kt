@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import net.yewton.petclinic.jooq.tables.references.OWNERS
 import net.yewton.petclinic.jooq.tables.references.PETS
 import net.yewton.petclinic.pet.Pet
@@ -97,5 +98,17 @@ class OwnerRepository(private val create: DSLContext) {
         it.value7(),
       )
     }
+  }
+
+  @Transactional
+  suspend fun save(owner: Owner): Owner {
+    // TODO: support update
+    val newId = create.insertInto(OWNERS)
+      .columns(OWNERS.FIRST_NAME, OWNERS.LAST_NAME, OWNERS.ADDRESS, OWNERS.CITY, OWNERS.TELEPHONE)
+      .values(owner.firstName, owner.lastName, owner.address, owner.city, owner.telephone)
+      .returningResult(OWNERS.ID)
+      .awaitSingle()
+      .let { it.value1() }
+    return owner.copy(id = newId)
   }
 }

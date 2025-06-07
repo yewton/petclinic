@@ -9,6 +9,7 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
@@ -101,5 +102,20 @@ class OwnerController(val owners: OwnerRepository) {
     // TODO 見つからない場合の処理 (参考実装にもないけど)
     model.addAttribute("owner", owner)
     return "owners/ownerDetails"
+  }
+
+  @GetMapping("/new")
+  fun initCreationForm(model: Model): String {
+    model.addAttribute("owner", Owner(null, "", "", "", "", "", emptySet()))
+    return "owners/createOrUpdateOwnerForm"
+  }
+
+  @PostMapping
+  suspend fun processCreationForm(@Valid owner: Owner, result: BindingResult): String {
+    if (result.hasErrors()) {
+      return "owners/createOrUpdateOwnerForm"
+    }
+    val savedOwner = this.owners.save(owner)
+    return "redirect:/owners/${savedOwner.id}"
   }
 }
