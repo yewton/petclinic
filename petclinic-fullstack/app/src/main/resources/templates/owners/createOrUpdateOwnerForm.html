@@ -3,7 +3,8 @@
 
 <body>
 
-  <h2>Owner</h2>
+  <h2 th:if="${owner.new}">New Owner</h2>
+  <h2 th:unless="${owner.new}">Owner</h2>
   <form th:object="${owner}" class="form-horizontal" id="add-owner-form" method="post" th:action="@{/owners}">
     <div class="form-group has-feedback">
       <input
