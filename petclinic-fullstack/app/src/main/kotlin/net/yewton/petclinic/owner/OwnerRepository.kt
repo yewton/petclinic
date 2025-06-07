@@ -102,13 +102,24 @@ class OwnerRepository(private val create: DSLContext) {
 
   @Transactional
   suspend fun save(owner: Owner): Owner {
-    // TODO: support update
-    val newId = create.insertInto(OWNERS)
-      .columns(OWNERS.FIRST_NAME, OWNERS.LAST_NAME, OWNERS.ADDRESS, OWNERS.CITY, OWNERS.TELEPHONE)
-      .values(owner.firstName, owner.lastName, owner.address, owner.city, owner.telephone)
-      .returningResult(OWNERS.ID)
-      .awaitSingle()
-      .let { it.value1() }
-    return owner.copy(id = newId)
+    if (owner.isNew()) {
+      val newId = create.insertInto(OWNERS)
+        .columns(OWNERS.FIRST_NAME, OWNERS.LAST_NAME, OWNERS.ADDRESS, OWNERS.CITY, OWNERS.TELEPHONE)
+        .values(owner.firstName, owner.lastName, owner.address, owner.city, owner.telephone)
+        .returningResult(OWNERS.ID)
+        .awaitSingle()
+        .let { it.value1() }
+      return owner.copy(id = newId)
+    } else {
+      create.update(OWNERS)
+        .set(OWNERS.FIRST_NAME, owner.firstName)
+        .set(OWNERS.LAST_NAME, owner.lastName)
+        .set(OWNERS.ADDRESS, owner.address)
+        .set(OWNERS.CITY, owner.city)
+        .set(OWNERS.TELEPHONE, owner.telephone)
+        .where(OWNERS.ID.eq(owner.id))
+        .awaitSingle()
+      return owner
+    }
   }
 }

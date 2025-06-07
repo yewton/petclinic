@@ -5,7 +5,8 @@
 
   <h2 th:if="${owner.new}">New Owner</h2>
   <h2 th:unless="${owner.new}">Owner</h2>
-  <form th:object="${owner}" class="form-horizontal" id="add-owner-form" method="post" th:action="@{/owners}">
+  <form th:object="${owner}" class="form-horizontal" id="add-owner-form" method="post"
+    th:action="${owner.new} ? @{/owners} : @{/owners/{ownerId}/edit(ownerId=${owner.id})}">
     <div class="form-group has-feedback">
       <input
         th:replace="~{fragments/inputField :: input ('First Name', 'firstName', 'text')}" />

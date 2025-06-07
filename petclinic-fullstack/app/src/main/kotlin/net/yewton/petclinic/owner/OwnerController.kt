@@ -118,4 +118,24 @@ class OwnerController(val owners: OwnerRepository) {
     val savedOwner = this.owners.save(owner)
     return "redirect:/owners/${savedOwner.id}"
   }
+
+  @GetMapping("/{ownerId}/edit")
+  suspend fun initUpdateOwnerForm(@PathVariable ownerId: Int, model: Model): String {
+    val owner = this.owners.findById(ownerId)
+    model.addAttribute("owner", owner)
+    return "owners/createOrUpdateOwnerForm"
+  }
+
+  @PostMapping("/{ownerId}/edit")
+  suspend fun processUpdateForm(
+    @Valid owner: Owner,
+    result: BindingResult,
+    @PathVariable ownerId: Int,
+  ): String {
+    if (result.hasErrors()) {
+      return "owners/createOrUpdateOwnerForm"
+    }
+    val savedOwner = this.owners.save(owner.copy(id = ownerId))
+    return "redirect:/owners/${savedOwner.id}"
+  }
 }
