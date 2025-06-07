@@ -1,5 +1,6 @@
 package net.yewton.petclinic.owner
 
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -7,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import org.springframework.test.web.reactive.server.returnResult
 import org.springframework.util.LinkedMultiValueMap
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -26,7 +28,7 @@ class OwnerControllerIntegrationTests(
     }
 
     @Test
-    fun `should process new owner form`() {
+    fun `should process new owner form`() = runTest {
         val ownerData = LinkedMultiValueMap<String, String>()
         ownerData.add("firstName", "Joe")
         ownerData.add("lastName", "Bloggs")
