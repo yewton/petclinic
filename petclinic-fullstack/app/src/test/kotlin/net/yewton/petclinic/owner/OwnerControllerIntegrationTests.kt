@@ -57,4 +57,41 @@ class OwnerControllerIntegrationTests(
         assertThat(newOwner.city).isEqualTo("London")
         assertThat(newOwner.telephone).isEqualTo("0123456789")
     }
+
+    @Test
+    fun `should show update owner form`() {
+        webTestClient.get().uri("/owners/1/edit")
+            .accept(MediaType.TEXT_HTML)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<String>()
+            .value { body ->
+                assertThat(body).contains("<h2>Owner</h2>")
+                assertThat(body).contains("""value="George"""")
+                assertThat(body).contains("""value="Franklin"""")
+            }
+    }
+
+    @Test
+    fun `should process update owner form`() = runTest {
+        val ownerData = LinkedMultiValueMap<String, String>()
+        ownerData.add("firstName", "George")
+        ownerData.add("lastName", "Franklin-Updated")
+        ownerData.add("address", "110 W. Liberty St.-Updated")
+        ownerData.add("city", "Madison-Updated")
+        ownerData.add("telephone", "6085551023")
+
+        webTestClient.post().uri("/owners/1/edit")
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .bodyValue(ownerData)
+            .exchange()
+            .expectStatus().is3xxRedirection
+            .expectHeader().valueEquals("Location", "/owners/1")
+
+        val updatedOwner = ownerRepository.findById(1)
+        assertThat(updatedOwner).isNotNull
+        assertThat(updatedOwner!!.lastName).isEqualTo("Franklin-Updated")
+        assertThat(updatedOwner.address).isEqualTo("110 W. Liberty St.-Updated")
+        assertThat(updatedOwner.city).isEqualTo("Madison-Updated")
+    }
 }
