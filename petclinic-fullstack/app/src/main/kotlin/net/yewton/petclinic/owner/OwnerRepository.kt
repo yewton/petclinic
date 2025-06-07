@@ -126,7 +126,8 @@ class OwnerRepository(private val create: DSLContext) {
       address = owner.address,
       city = owner.city,
       telephone = owner.telephone,
-      pets = owner.pets ?: emptyList() // Use existing pets if available, otherwise empty list (Pet type inferred)
+      // Use existing pets if available, otherwise empty list (Pet type inferred)
+      pets = owner.pets ?: emptyList()
     )
   }
 }
