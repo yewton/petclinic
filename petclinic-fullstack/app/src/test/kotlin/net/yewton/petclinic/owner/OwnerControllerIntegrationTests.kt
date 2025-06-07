@@ -1,5 +1,6 @@
 package net.yewton.petclinic.owner
 
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,7 +28,7 @@ class OwnerControllerIntegrationTests(
     }
 
     @Test
-    suspend fun `should process new owner form`() {
+    fun `should process new owner form`(): Unit = runBlocking {
         val ownerData = LinkedMultiValueMap<String, String>()
         ownerData.add("firstName", "Joe")
         ownerData.add("lastName", "Bloggs")
