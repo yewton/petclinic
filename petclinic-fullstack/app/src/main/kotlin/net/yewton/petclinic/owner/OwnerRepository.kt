@@ -104,14 +104,15 @@ class OwnerRepository(private val create: DSLContext) {
 
   @Transactional
   suspend fun save(owner: Owner): Owner {
-    val newIdRecord = create.insertInto(OWNERS)
-      .set(OWNERS.FIRST_NAME, owner.firstName)
-      .set(OWNERS.LAST_NAME, owner.lastName)
-      .set(OWNERS.ADDRESS, owner.address)
-      .set(OWNERS.CITY, owner.city)
-      .set(OWNERS.TELEPHONE, owner.telephone)
-      .returningResult(OWNERS.ID) // This returns a ResultQuery which is a Publisher
-      .awaitSingle() // Using kotlinx.coroutines.reactive.awaitSingle
+    val newIdRecord =
+      create.insertInto(OWNERS)
+        .set(OWNERS.FIRST_NAME, owner.firstName)
+        .set(OWNERS.LAST_NAME, owner.lastName)
+        .set(OWNERS.ADDRESS, owner.address)
+        .set(OWNERS.CITY, owner.city)
+        .set(OWNERS.TELEPHONE, owner.telephone)
+        .returningResult(OWNERS.ID) // This returns a ResultQuery which is a Publisher
+        .awaitSingle() // Using kotlinx.coroutines.reactive.awaitSingle
 
     val newId = newIdRecord?.value1() ?: throw IllegalStateException("Failed to retrieve ID after insert or ID was null.")
 
@@ -127,7 +128,7 @@ class OwnerRepository(private val create: DSLContext) {
       city = owner.city,
       telephone = owner.telephone,
       // Use existing pets if available, otherwise empty list (Pet type inferred)
-      pets = owner.pets ?: emptyList()
+      pets = owner.pets ?: emptyList(),
     )
   }
 }

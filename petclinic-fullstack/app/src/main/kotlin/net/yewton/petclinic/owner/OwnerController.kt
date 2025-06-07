@@ -1,5 +1,7 @@
 package net.yewton.petclinic.owner
 
+import jakarta.validation.Valid
+import net.yewton.petclinic.pet.Pet // Added for emptyList<Pet>()
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
@@ -14,8 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
-import jakarta.validation.Valid
-import net.yewton.petclinic.pet.Pet // Added for emptyList<Pet>()
 // kotlinx.coroutines.reactor.awaitSingle will be removed as it's no longer needed
 
 @Controller
@@ -96,7 +96,7 @@ class OwnerController(val owners: OwnerRepository) {
   @PostMapping("/new")
   suspend fun processCreationForm(
     @Valid @ModelAttribute("owner") owner: Owner,
-    result: BindingResult
+    result: BindingResult,
   ): String {
     if (result.hasErrors()) {
       return "owners/createOrUpdateOwnerForm"
