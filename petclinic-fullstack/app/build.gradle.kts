@@ -57,6 +57,7 @@ dependencies {
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.testcontainers:junit-jupiter")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+  testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
   testImplementation("org.testcontainers:r2dbc")
   testImplementation("org.testcontainers:postgresql")
 }
