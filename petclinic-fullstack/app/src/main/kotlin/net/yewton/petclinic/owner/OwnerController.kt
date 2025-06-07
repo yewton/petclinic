@@ -1,5 +1,6 @@
 package net.yewton.petclinic.owner
 
+import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
@@ -9,7 +10,6 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
-import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
@@ -111,7 +111,10 @@ class OwnerController(val owners: OwnerRepository) {
   }
 
   @PostMapping
-  suspend fun processCreationForm(@Valid owner: Owner, result: BindingResult): String {
+  suspend fun processCreationForm(
+    @Valid owner: Owner,
+    result: BindingResult,
+  ): String {
     if (result.hasErrors()) {
       return "owners/createOrUpdateOwnerForm"
     }
@@ -120,7 +123,10 @@ class OwnerController(val owners: OwnerRepository) {
   }
 
   @GetMapping("/{ownerId}/edit")
-  suspend fun initUpdateOwnerForm(@PathVariable ownerId: Int, model: Model): String {
+  suspend fun initUpdateOwnerForm(
+    @PathVariable ownerId: Int,
+    model: Model,
+  ): String {
     val owner = this.owners.findById(ownerId)
     model.addAttribute("owner", owner)
     return "owners/createOrUpdateOwnerForm"
