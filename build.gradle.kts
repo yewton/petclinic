@@ -1,11 +1,6 @@
 plugins {
-  base
   id("net.yewton.petclinic.spotless")
-}
-
-// IDE でソースダウンロードする用
-repositories {
-  mavenCentral()
+  id("net.yewton.petclinic.commons")
 }
 
 listOf(

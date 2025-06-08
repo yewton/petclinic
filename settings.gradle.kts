@@ -3,6 +3,7 @@ pluginManagement {
     gradlePluginPortal()
   }
   includeBuild("lint-logic")
+  includeBuild("build-logic")
 }
 
 includeBuild("lint-logic")
