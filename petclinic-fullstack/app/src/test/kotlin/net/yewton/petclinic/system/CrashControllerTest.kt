@@ -18,19 +18,28 @@ class CrashControllerTest : WithAssertions {
     @Autowired webClient: WebTestClient,
   ) {
     webClient
-      .get().uri("/oups")
+      .get()
+      .uri("/oups")
       .accept(MediaType.TEXT_HTML)
       .exchange()
-      .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
-      .expectBody(String::class.java).consumeWith {
+      .expectStatus()
+      .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+      .expectBody(String::class.java)
+      .consumeWith {
         val body = it.responseBody
         assertThat(body)
           .isNotNull()
           .containsSubsequence(
-            "<body>", "<h2>", "問題が発生しました...", "</h2>", "<p>",
-            "Expected:", "例外発生時の挙動確認用コントローラー", "</p>", "</body>",
-          )
-          .doesNotContain("Whitelabel Error Page", "This application has no explicit mapping for")
+            "<body>",
+            "<h2>",
+            "問題が発生しました...",
+            "</h2>",
+            "<p>",
+            "Expected:",
+            "例外発生時の挙動確認用コントローラー",
+            "</p>",
+            "</body>",
+          ).doesNotContain("Whitelabel Error Page", "This application has no explicit mapping for")
       }
   }
 }

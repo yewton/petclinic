@@ -18,7 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 @RequestMapping("/owners")
-class OwnerController(val owners: OwnerRepository) {
+class OwnerController(
+  val owners: OwnerRepository,
+) {
   @GetMapping("find")
   fun initFindForm(
     model: Model,

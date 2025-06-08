@@ -10,13 +10,19 @@ import org.springframework.web.bind.annotation.RequestParam
 import reactor.core.publisher.Mono
 
 @Controller
-class VetController(private val vetRepository: VetRepository) {
+class VetController(
+  private val vetRepository: VetRepository,
+) {
   enum class DBClient {
     JOOQ,
     SPRING,
   }
 
-  data class VetParam(val page: Int, val dbClient: DBClient, val reactor: Boolean)
+  data class VetParam(
+    val page: Int,
+    val dbClient: DBClient,
+    val reactor: Boolean,
+  )
 
   @ModelAttribute
   fun param(
