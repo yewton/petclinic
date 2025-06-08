@@ -18,10 +18,13 @@ class OwnerControllerIntegrationTests(
 ) {
   @Test
   fun `should show new owner form`() {
-    webTestClient.get().uri("/owners/new")
+    webTestClient
+      .get()
+      .uri("/owners/new")
       .accept(MediaType.TEXT_HTML)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
       .expectBody<String>()
       .value { body ->
         assertThat(body).contains("<h2>New Owner</h2>")
@@ -39,12 +42,16 @@ class OwnerControllerIntegrationTests(
       ownerData.add("telephone", "0123456789")
 
       val result =
-        webTestClient.post().uri("/owners")
+        webTestClient
+          .post()
+          .uri("/owners")
           .contentType(MediaType.APPLICATION_FORM_URLENCODED)
           .bodyValue(ownerData)
           .exchange()
-          .expectStatus().is3xxRedirection
-          .expectHeader().valueMatches("Location", "/owners/\\d+")
+          .expectStatus()
+          .is3xxRedirection
+          .expectHeader()
+          .valueMatches("Location", "/owners/\\d+")
           .returnResult<String>()
 
       val location = result.responseHeaders.location!!
@@ -62,10 +69,13 @@ class OwnerControllerIntegrationTests(
 
   @Test
   fun `should show update owner form`() {
-    webTestClient.get().uri("/owners/1/edit")
+    webTestClient
+      .get()
+      .uri("/owners/1/edit")
       .accept(MediaType.TEXT_HTML)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
       .expectBody<String>()
       .value { body ->
         assertThat(body).contains("<h2>Owner</h2>")
@@ -84,12 +94,16 @@ class OwnerControllerIntegrationTests(
       ownerData.add("city", "Madison-Updated")
       ownerData.add("telephone", "6085551023")
 
-      webTestClient.post().uri("/owners/1/edit")
+      webTestClient
+        .post()
+        .uri("/owners/1/edit")
         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
         .bodyValue(ownerData)
         .exchange()
-        .expectStatus().is3xxRedirection
-        .expectHeader().valueEquals("Location", "/owners/1")
+        .expectStatus()
+        .is3xxRedirection
+        .expectHeader()
+        .valueEquals("Location", "/owners/1")
 
       val updatedOwner = ownerRepository.findById(1)
       assertThat(updatedOwner).isNotNull

@@ -6,7 +6,9 @@ import org.springframework.beans.factory.InitializingBean
 import org.springframework.stereotype.Component
 
 @Component
-class OpenTelemetryAppenderInitializer(private val openTelemetry: OpenTelemetry) : InitializingBean {
+class OpenTelemetryAppenderInitializer(
+  private val openTelemetry: OpenTelemetry,
+) : InitializingBean {
   override fun afterPropertiesSet() {
     OpenTelemetryAppender.install(this.openTelemetry)
   }

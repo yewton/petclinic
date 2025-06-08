@@ -11,7 +11,5 @@ data class Pet(
   val type: PetType,
   val visits: Set<Visit> = hashSetOf(),
 ) {
-  override fun toString(): String {
-    return name ?: ""
-  }
+  override fun toString(): String = name ?: ""
 }

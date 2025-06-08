@@ -44,11 +44,15 @@ class VetRepository(
     try {
       val query = findAllQuery(pageable)
       val result =
-        Flux.from(query).asFlow().map {
-          val vet = Vet(it.get(VETS.ID), it.get(VETS.FIRST_NAME), it.get(VETS.LAST_NAME), it.value4())
-          val totalCount = it.value5()
-          vet to totalCount
-        }.toList().toMap()
+        Flux
+          .from(query)
+          .asFlow()
+          .map {
+            val vet = Vet(it.get(VETS.ID), it.get(VETS.FIRST_NAME), it.get(VETS.LAST_NAME), it.value4())
+            val totalCount = it.value5()
+            vet to totalCount
+          }.toList()
+          .toMap()
       logAfter(isReactor = false, isSpring = false)
       return PageImpl(result.keys.toList(), pageable, result.values.first().toLong())
     } finally {
@@ -61,14 +65,17 @@ class VetRepository(
   fun findAllReactorJooq(pageable: Pageable): Mono<Page<Vet>> {
     logBefore(isReactor = true, isSpring = false)
     val query = findAllQuery(pageable)
-    return Flux.from(query)
+    return Flux
+      .from(query)
       .name("findAllReactorJooq")
       .tap(Micrometer.observation(observationRegistry))
       .map {
         val vet = Vet(it.get(VETS.ID), it.get(VETS.FIRST_NAME), it.get(VETS.LAST_NAME), it.value4())
         val totalCount = it.value5()
         vet to totalCount
-      }.collectList().map { it.toMap() }.map<Page<Vet>> {
+      }.collectList()
+      .map { it.toMap() }
+      .map<Page<Vet>> {
         PageImpl(it.keys.toList(), pageable, it.values.first().toLong())
       }.doOnNext { logAfter(isReactor = true, isSpring = false) }
   }
@@ -127,19 +134,19 @@ class VetRepository(
   }
 
   private fun findAllCoreQuery(pageable: Pageable) =
-    client.sql(
-      """
-      SELECT v.id, v.first_name, v.last_name, s.name as specialty_name, temp.total_count
-      FROM vets v
-      INNER JOIN (
-          SELECT id, count(id) over() as total_count FROM vets ORDER BY id LIMIT :limit OFFSET :offset
-      ) temp USING(id)
-      LEFT JOIN vet_specialties vs ON v.id = vs.vet_id
-      LEFT JOIN specialties s ON vs.specialty_id = s.id
-      ORDER BY v.id
-      """.trimIndent(),
-    )
-      .bind("limit", pageable.pageSize)
+    client
+      .sql(
+        """
+        SELECT v.id, v.first_name, v.last_name, s.name as specialty_name, temp.total_count
+        FROM vets v
+        INNER JOIN (
+            SELECT id, count(id) over() as total_count FROM vets ORDER BY id LIMIT :limit OFFSET :offset
+        ) temp USING(id)
+        LEFT JOIN vet_specialties vs ON v.id = vs.vet_id
+        LEFT JOIN specialties s ON vs.specialty_id = s.id
+        ORDER BY v.id
+        """.trimIndent(),
+      ).bind("limit", pageable.pageSize)
       .bind("offset", pageable.offset)
       .fetch()
 
@@ -150,14 +157,16 @@ class VetRepository(
     }
     return (
       totalCount to
-        rows.groupBy { it["id"]!! }
+        rows
+          .groupBy { it["id"]!! }
           .map { (id, rows) ->
             val specialties =
-              rows.mapNotNull {
-                it["specialty_name"] as String?
-              }.map {
-                Specialty(it)
-              }
+              rows
+                .mapNotNull {
+                  it["specialty_name"] as String?
+                }.map {
+                  Specialty(it)
+                }
             val row = rows.first()
             Vet(
               id = id as Int,
@@ -170,15 +179,16 @@ class VetRepository(
   }
 
   private fun findAllQuery(pageable: Pageable) =
-    create.select(
-      VETS.ID,
-      VETS.FIRST_NAME,
-      VETS.LAST_NAME,
-      multiset(
-        selectFrom(VETS.specialties),
-      ).intoList { Specialty(it.name) },
-      count().over(),
-    ).from(VETS)
+    create
+      .select(
+        VETS.ID,
+        VETS.FIRST_NAME,
+        VETS.LAST_NAME,
+        multiset(
+          selectFrom(VETS.specialties),
+        ).intoList { Specialty(it.name) },
+        count().over(),
+      ).from(VETS)
       .orderBy(VETS.ID.asc())
       .limit(pageable.pageSize)
       .offset(pageable.offset)

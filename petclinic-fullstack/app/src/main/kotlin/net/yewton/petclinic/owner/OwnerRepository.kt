@@ -22,7 +22,9 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
-class OwnerRepository(private val create: DSLContext) {
+class OwnerRepository(
+  private val create: DSLContext,
+) {
   private fun pets() =
     multiset(
       select(
@@ -39,35 +41,39 @@ class OwnerRepository(private val create: DSLContext) {
     pageable: Pageable,
   ): Page<Owner> {
     val query =
-      create.select(
-        OWNERS.ID,
-        OWNERS.FIRST_NAME,
-        OWNERS.LAST_NAME,
-        OWNERS.ADDRESS,
-        OWNERS.CITY,
-        OWNERS.TELEPHONE,
-        pets(),
-        count().over(),
-      ).from(OWNERS)
+      create
+        .select(
+          OWNERS.ID,
+          OWNERS.FIRST_NAME,
+          OWNERS.LAST_NAME,
+          OWNERS.ADDRESS,
+          OWNERS.CITY,
+          OWNERS.TELEPHONE,
+          pets(),
+          count().over(),
+        ).from(OWNERS)
         .where(OWNERS.LAST_NAME.startsWith(lastName))
         .orderBy(OWNERS.ID)
         .limit(pageable.pageSize)
         .offset(pageable.offset)
     val result =
-      query.asFlow().map {
-        val owner =
-          Owner(
-            it[OWNERS.ID],
-            it[OWNERS.FIRST_NAME],
-            it[OWNERS.LAST_NAME],
-            it[OWNERS.ADDRESS],
-            it[OWNERS.CITY],
-            it[OWNERS.TELEPHONE],
-            it.value7().toSet(),
-          )
-        val totalCount = it.value8()
-        owner to totalCount
-      }.toList().toMap()
+      query
+        .asFlow()
+        .map {
+          val owner =
+            Owner(
+              it[OWNERS.ID],
+              it[OWNERS.FIRST_NAME],
+              it[OWNERS.LAST_NAME],
+              it[OWNERS.ADDRESS],
+              it[OWNERS.CITY],
+              it[OWNERS.TELEPHONE],
+              it.value7().toSet(),
+            )
+          val totalCount = it.value8()
+          owner to totalCount
+        }.toList()
+        .toMap()
     if (result.isEmpty()) {
       return Page.empty(pageable)
     }
@@ -77,15 +83,16 @@ class OwnerRepository(private val create: DSLContext) {
   @Transactional(readOnly = true)
   suspend fun findById(id: Int): Owner? {
     val query =
-      create.select(
-        OWNERS.ID,
-        OWNERS.FIRST_NAME,
-        OWNERS.LAST_NAME,
-        OWNERS.ADDRESS,
-        OWNERS.CITY,
-        OWNERS.TELEPHONE,
-        pets(),
-      ).from(OWNERS)
+      create
+        .select(
+          OWNERS.ID,
+          OWNERS.FIRST_NAME,
+          OWNERS.LAST_NAME,
+          OWNERS.ADDRESS,
+          OWNERS.CITY,
+          OWNERS.TELEPHONE,
+          pets(),
+        ).from(OWNERS)
         .where(OWNERS.ID.eq(id))
     return query.awaitFirstOrNull()?.let {
       Owner(
@@ -104,7 +111,8 @@ class OwnerRepository(private val create: DSLContext) {
   suspend fun save(owner: Owner): Owner {
     if (owner.isNew()) {
       val newId =
-        create.insertInto(OWNERS)
+        create
+          .insertInto(OWNERS)
           .columns(OWNERS.FIRST_NAME, OWNERS.LAST_NAME, OWNERS.ADDRESS, OWNERS.CITY, OWNERS.TELEPHONE)
           .values(owner.firstName, owner.lastName, owner.address, owner.city, owner.telephone)
           .returningResult(OWNERS.ID)
@@ -112,7 +120,8 @@ class OwnerRepository(private val create: DSLContext) {
           .let { it.value1() }
       return owner.copy(id = newId)
     } else {
-      create.update(OWNERS)
+      create
+        .update(OWNERS)
         .set(OWNERS.FIRST_NAME, owner.firstName)
         .set(OWNERS.LAST_NAME, owner.lastName)
         .set(OWNERS.ADDRESS, owner.address)
