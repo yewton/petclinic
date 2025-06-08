@@ -43,7 +43,7 @@ dependencies {
 group = "org.postgresql"
 version = "1.1.0.BUILD-SNAPSHOT"
 description = "Reactive Relational Database Connectivity - Postgresql"
-java.sourceCompatibility = JavaVersion.VERSION_1_8
+java.sourceCompatibility = JavaVersion.VERSION_17
 
 java {
     withSourcesJar()
