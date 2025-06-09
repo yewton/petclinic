@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.servlet.mvc.support.RedirectAttributes
 import java.time.LocalDate
 
 @Controller
@@ -38,6 +39,7 @@ class PetController(
     @Valid @ModelAttribute pet: Pet,
     result: BindingResult,
     model: Model,
+    redirectAttributes: RedirectAttributes,
   ): String {
     val owner = owners.findById(ownerId)
 
@@ -57,6 +59,7 @@ class PetController(
       return "pets/createOrUpdatePetForm"
     }
     pets.save(pet, ownerId)
+    redirectAttributes.addFlashAttribute("message", "New Pet has been Added")
     return "redirect:/owners/$ownerId"
   }
 }

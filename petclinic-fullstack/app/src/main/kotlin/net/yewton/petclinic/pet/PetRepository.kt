@@ -34,7 +34,7 @@ class PetRepository(
           .values(pet.name, pet.birthDate, typeId, ownerId)
           .returningResult(PETS.ID)
           .awaitSingle()
-          .let { it.value1() }
+          .value1()
 
       return pet.copy(id = newId)
     } else {
