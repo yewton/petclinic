@@ -35,7 +35,7 @@ class PetController(
   @PostMapping("/pets/new")
   suspend fun processCreationForm(
     @PathVariable ownerId: Int,
-    @Valid @ModelAttribute pet: Pet,
+    @ModelAttribute pet: Pet,
     result: BindingResult,
     model: Model,
   ): String {
