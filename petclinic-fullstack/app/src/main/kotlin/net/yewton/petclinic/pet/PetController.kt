@@ -1,6 +1,5 @@
 package net.yewton.petclinic.pet
 
-import jakarta.validation.Valid
 import net.yewton.petclinic.owner.OwnerRepository
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model

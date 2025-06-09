@@ -23,7 +23,8 @@ class PetRepository(
           .select(TYPES.ID)
           .from(TYPES)
           .where(TYPES.NAME.eq(pet.type.name))
-          .awaitFirstOrNull()?.value1()
+          .awaitFirstOrNull()
+          ?.value1()
           ?: throw IllegalArgumentException("Pet type not found: ${pet.type.name}")
 
       val newId =
