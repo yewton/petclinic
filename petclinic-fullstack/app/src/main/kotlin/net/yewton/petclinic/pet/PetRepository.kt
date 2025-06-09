@@ -23,8 +23,7 @@ class PetRepository(
           .select(TYPES.ID)
           .from(TYPES)
           .where(TYPES.NAME.eq(pet.type.name))
-          .awaitFirstOrNull()
-          ?.let { it.value1() }
+          .awaitFirstOrNull()?.value1()
           ?: throw IllegalArgumentException("Pet type not found: ${pet.type.name}")
 
       val newId =
@@ -38,7 +37,7 @@ class PetRepository(
 
       return pet.copy(id = newId)
     } else {
-      return pet
+      TODO("Update functionality not implemented")
     }
   }
 }

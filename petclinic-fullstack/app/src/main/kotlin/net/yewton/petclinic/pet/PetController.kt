@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.servlet.mvc.support.RedirectAttributes
+import java.time.LocalDate
 
 @Controller
 @RequestMapping("/owners/{ownerId}")
@@ -31,21 +33,33 @@ class PetController(
     return "pets/createOrUpdatePetForm"
   }
 
-  @PostMapping("/pets")
+  @PostMapping("/pets/new")
   suspend fun processCreationForm(
     @PathVariable ownerId: Int,
     @Valid @ModelAttribute pet: Pet,
     result: BindingResult,
     model: Model,
+    redirectAttributes: RedirectAttributes,
   ): String {
+    val owner = owners.findById(ownerId)
+    
+    if (!pet.name.isNullOrBlank() && pet.isNew() && owner.pets.any { it.name == pet.name }) {
+      result.rejectValue("name", "duplicate", "already exists")
+    }
+    
+    val currentDate = LocalDate.now()
+    if (pet.birthDate != null && pet.birthDate!!.isAfter(currentDate)) {
+      result.rejectValue("birthDate", "typeMismatch.birthDate")
+    }
+    
     if (result.hasErrors()) {
-      val owner = owners.findById(ownerId)
       val types = petTypes.findAll()
       model.addAttribute("owner", owner)
       model.addAttribute("types", types)
       return "pets/createOrUpdatePetForm"
     }
     pets.save(pet, ownerId)
+    redirectAttributes.addFlashAttribute("message", "New Pet has been Added")
     return "redirect:/owners/$ownerId"
   }
 }
