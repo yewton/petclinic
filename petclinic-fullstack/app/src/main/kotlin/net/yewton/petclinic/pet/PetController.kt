@@ -42,16 +42,16 @@ class PetController(
     redirectAttributes: RedirectAttributes,
   ): String {
     val owner = owners.findById(ownerId)
-    
+
     if (!pet.name.isNullOrBlank() && pet.isNew() && owner.pets.any { it.name == pet.name }) {
       result.rejectValue("name", "duplicate", "already exists")
     }
-    
+
     val currentDate = LocalDate.now()
     if (pet.birthDate != null && pet.birthDate!!.isAfter(currentDate)) {
       result.rejectValue("birthDate", "typeMismatch.birthDate")
     }
-    
+
     if (result.hasErrors()) {
       val types = petTypes.findAll()
       model.addAttribute("owner", owner)
