@@ -12,11 +12,12 @@ import org.springframework.transaction.annotation.Transactional
 class PetRepository(
   private val create: DSLContext,
 ) {
-  suspend fun findById(petId: Int): Pet? {
-    return create
+  suspend fun findById(petId: Int): Pet? =
+    create
       .select(PETS.ID, PETS.NAME, PETS.BIRTH_DATE, TYPES.NAME)
       .from(PETS)
-      .join(TYPES).on(PETS.TYPE_ID.eq(TYPES.ID))
+      .join(TYPES)
+      .on(PETS.TYPE_ID.eq(TYPES.ID))
       .where(PETS.ID.eq(petId))
       .awaitFirstOrNull()
       ?.let { record ->
@@ -25,10 +26,9 @@ class PetRepository(
           name = record.value2(),
           birthDate = record.value3(),
           type = PetType(record.value4()),
-          visits = hashSetOf()
+          visits = hashSetOf(),
         )
       }
-  }
 
   @Transactional
   suspend fun save(
