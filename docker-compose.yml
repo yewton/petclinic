@@ -25,7 +25,7 @@ services:
       "/etc/alloy/config.alloy",
     ]
   grafana:
-    image: grafana/grafana:11.4.0@sha256:d8ea37798ccc41061a62ab080f2676dda6bf7815558499f901bdb0f533a456fb
+    image: grafana/grafana:11.6.3@sha256:6128afd8174f01e39a78341cb457588f723bbb9c3b25c4d43c4b775881767069
     volumes:
       - "./config/grafana/provisioning:/etc/grafana/provisioning"
     ports:
