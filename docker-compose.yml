@@ -51,7 +51,7 @@ services:
     volumes:
       - "./config/loki.yaml:/etc/loki/loki.yaml"
   tempo: # トレース
-    image: grafana/tempo:2.6.1@sha256:ef4384fce6e8ad22b95b243d8fc165628cda655376fd50e7850536ad89d71d50
+    image: grafana/tempo:2.8.1@sha256:bc9245fe3da4e63dc4c6862d9c2dad9bcd8be13d0ba4f7705fa6acda4c904d0e
     ports:
       - "3200:3200"
     command: [ "-config.file=/etc/tempo.yaml" ]
