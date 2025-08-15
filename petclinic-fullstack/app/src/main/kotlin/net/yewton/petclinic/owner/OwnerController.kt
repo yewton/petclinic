@@ -108,7 +108,7 @@ class OwnerController(
 
   @GetMapping("/new")
   fun initCreationForm(model: Model): String {
-    model.addAttribute("owner", Owner(null, "", "", "", "", "", emptySet()))
+    model.addAttribute("owner", Owner(null, "", "", "", "", "", mutableSetOf()))
     return "owners/createOrUpdateOwnerForm"
   }
 

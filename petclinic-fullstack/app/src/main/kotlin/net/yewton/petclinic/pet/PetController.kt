@@ -1,5 +1,6 @@
 package net.yewton.petclinic.pet
 
+import jakarta.validation.Valid
 import net.yewton.petclinic.owner.OwnerRepository
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -34,7 +35,7 @@ class PetController(
   @PostMapping("/pets/new")
   suspend fun processCreationForm(
     @PathVariable ownerId: Int,
-    @ModelAttribute pet: Pet,
+    @Valid @ModelAttribute pet: Pet,
     result: BindingResult,
     model: Model,
   ): String {
@@ -56,6 +57,41 @@ class PetController(
       return "pets/createOrUpdatePetForm"
     }
     pets.save(pet, ownerId)
-    return "redirect:/owners/$ownerId"
+    return "redirect:/owners/{ownerId}"
+  }
+
+  @GetMapping("/pets/{petId}/edit")
+  suspend fun initUpdateForm(
+    @PathVariable ownerId: Int,
+    @PathVariable petId: Int,
+    model: Model,
+  ): String {
+    val owner = owners.findById(ownerId)
+    val pet = pets.findById(petId)
+    val types = petTypes.findAll()
+    model.addAttribute("owner", owner)
+    model.addAttribute("pet", pet)
+    model.addAttribute("types", types)
+    return "pets/createOrUpdatePetForm"
+  }
+
+  @PostMapping("/pets/{petId}/edit")
+  suspend fun processUpdateForm(
+    @PathVariable ownerId: Int,
+    @PathVariable petId: Int,
+    @Valid @ModelAttribute pet: Pet,
+    result: BindingResult,
+    model: Model,
+  ): String {
+    if (result.hasErrors()) {
+      val owner = owners.findById(ownerId)
+      val types = petTypes.findAll()
+      model.addAttribute("owner", owner)
+      model.addAttribute("types", types)
+      return "pets/createOrUpdatePetForm"
+    }
+    pet.id = petId
+    pets.save(pet, ownerId)
+    return "redirect:/owners/{ownerId}"
   }
 }

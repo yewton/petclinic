@@ -6,19 +6,25 @@ import net.yewton.petclinic.model.Person
 import net.yewton.petclinic.pet.Pet
 
 data class Owner(
-  val id: Int?,
+  var id: Int?,
   @field:NotEmpty
-  override val firstName: String?,
+  override var firstName: String?,
   @field:NotEmpty
-  override val lastName: String?,
+  override var lastName:String?,
   @field:NotEmpty
-  val address: String?,
+  var address: String?,
   @field:NotEmpty
-  val city: String?,
+  var city: String?,
   @field:NotEmpty
   @field:Digits(fraction = 0, integer = 10)
-  val telephone: String?,
-  val pets: Set<Pet> = emptySet(),
+  var telephone: String?,
+  val pets: MutableSet<Pet> = mutableSetOf(),
 ) : Person {
   fun isNew(): Boolean = id == null
+
+  fun addPet(pet: Pet) {
+    if (pet.isNew()) {
+      pets.add(pet)
+    }
+  }
 }
