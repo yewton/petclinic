@@ -97,13 +97,6 @@ jooq {
   }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-    exclude("**/*IntegrationTests.class")
-    exclude("**/CrashControllerTest.class")
-    exclude("**/VetRepositoryTest.class")
-}
-
 sourceSets {
   main {
     kotlin {
