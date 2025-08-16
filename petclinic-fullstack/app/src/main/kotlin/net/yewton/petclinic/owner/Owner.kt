@@ -10,7 +10,7 @@ data class Owner(
   @field:NotEmpty
   override var firstName: String?,
   @field:NotEmpty
-  override var lastName:String?,
+  override var lastName: String?,
   @field:NotEmpty
   var address: String?,
   @field:NotEmpty

@@ -12,8 +12,9 @@ import org.springframework.transaction.annotation.Transactional
 class PetRepository(
   private val create: DSLContext,
 ) {
-  suspend fun findById(id: Int): Pet? {
-    return create.select(PETS.ID, PETS.NAME, PETS.BIRTH_DATE, TYPES.NAME)
+  suspend fun findById(id: Int): Pet? =
+    create
+      .select(PETS.ID, PETS.NAME, PETS.BIRTH_DATE, TYPES.NAME)
       .from(PETS)
       .join(TYPES)
       .on(PETS.TYPE_ID.eq(TYPES.ID))
@@ -27,7 +28,6 @@ class PetRepository(
           PetType(it.value4()!!),
         )
       }
-  }
 
   @Transactional
   suspend fun save(
@@ -64,7 +64,8 @@ class PetRepository(
           .awaitFirstOrNull()
           ?.value1()
           ?: throw IllegalArgumentException("Pet type not found: ${pet.type.name}")
-      create.update(PETS)
+      create
+        .update(PETS)
         .set(PETS.NAME, pet.name)
         .set(PETS.BIRTH_DATE, pet.birthDate)
         .set(PETS.TYPE_ID, typeId)
