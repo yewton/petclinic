@@ -33,7 +33,7 @@ class OwnerRepository(
         OWNERS.pets.BIRTH_DATE,
         row(OWNERS.pets.types_.NAME).mapping { PetType(it) },
       ).from(OWNERS.pets),
-    ).intoList { Pet(it[PETS.ID], it[PETS.NAME], it[PETS.BIRTH_DATE], it.value4(), hashSetOf()) }
+    ).intoList { Pet(it[PETS.ID], it[PETS.NAME], it[PETS.BIRTH_DATE], it.value4(), mutableSetOf()) }
 
   @Transactional(readOnly = true)
   suspend fun findByLastName(
@@ -68,7 +68,7 @@ class OwnerRepository(
               it[OWNERS.ADDRESS],
               it[OWNERS.CITY],
               it[OWNERS.TELEPHONE],
-              it.value7().toSet(),
+              it.value7().toMutableSet(),
             )
           val totalCount = it.value8()
           owner to totalCount
@@ -102,7 +102,7 @@ class OwnerRepository(
         it[OWNERS.ADDRESS],
         it[OWNERS.CITY],
         it[OWNERS.TELEPHONE],
-        it.value7().toSet(),
+        it.value7().toMutableSet(),
       )
     }
   }
