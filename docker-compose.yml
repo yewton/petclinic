@@ -8,7 +8,7 @@ services:
       - POSTGRES_USER=petclinic
       - POSTGRES_DB=petclinic
   alloy:
-    image: grafana/alloy:v1.5.1@sha256:01a63f4e032ce54ee94b22049bc27f597e74f85566478c377f4b5c7f020c1eb3
+    image: grafana/alloy:v1.10.2@sha256:bcf27f18c4402869af112fb39e35e1db3804a404686f4caa20bdf77814219223
     ports:
       - "12345:12345" # alloy
       - "4317:4317" # OTLP/gRPC
