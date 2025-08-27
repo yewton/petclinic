@@ -13,7 +13,7 @@ spring-boot-plugin = "org.springframework.boot:spring-boot-gradle-plugin:3.4.1"
 dependency-management-plugin = "io.spring.gradle:dependency-management-plugin:1.1.6"
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-allopen = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
-webjars-bootstrap = "org.webjars.npm:bootstrap:5.3.3"
+webjars-bootstrap = "org.webjars.npm:bootstrap:5.3.8"
 webjars-font-awesome = "org.webjars.npm:font-awesome:4.7.0"
 webjars-htmx = "org.webjars.npm:htmx.org:2.0.4"
 jooq-codegen-core = { module = "org.jooq:jooq-codegen", version.ref = "jooq" }
