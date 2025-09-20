@@ -40,6 +40,8 @@ dependencies {
   // Logs
   implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0")
 
+  implementation("org.springframework.modulith:spring-modulith-starter-jpa")
+
   runtimeOnly("org.springframework.boot:spring-boot-starter-actuator")
   runtimeOnly("org.postgresql:postgresql")
   runtimeOnly("org.postgresql:r2dbc-postgresql")
@@ -53,6 +55,7 @@ dependencies {
   developmentOnly("org.springframework.boot:spring-boot-docker-compose")
   developmentOnly("org.springframework.boot:spring-boot-devtools")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("org.springframework.modulith:spring-modulith-starter-test")
   testImplementation("org.springframework.boot:spring-boot-testcontainers")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.testcontainers:junit-jupiter")

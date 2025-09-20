@@ -4,9 +4,13 @@
 kotlin = "1.9.25"
 jooq = "3.20.4"
 opentelemetry = "2.10.0-alpha"
+spring-modulith = "1.3.9"
 
 [libraries]
 spring-boot-plugin = "org.springframework.boot:spring-boot-gradle-plugin:3.4.1"
+spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "spring-modulith" }
+spring-modulith-starter-jpa = { module = "org.springframework.modulith:spring-modulith-starter-jpa" }
+spring-modulith-starter-test = { module = "org.springframework.modulith:spring-modulith-starter-test" }
 
 # Spring Boot の依存バージョンに合わせる
 # https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
