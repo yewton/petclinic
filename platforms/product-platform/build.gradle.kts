@@ -4,8 +4,12 @@ plugins {
 
 group = "net.yewton.petclinic.platform"
 
+javaPlatform.allowDependencies()
+
 dependencies {
+  api(platform(libs.spring.modulith.bom))
   constraints {
+    api(libs.spring.modulith.starter.jpa)
     api(libs.webjars.bootstrap)
     api(libs.webjars.font.awesome)
     api(libs.webjars.htmx)

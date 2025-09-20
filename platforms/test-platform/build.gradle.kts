@@ -6,5 +6,6 @@ group = "net.yewton.petclinic.platform"
 
 dependencies {
   constraints {
+    api(libs.spring.modulith.starter.test)
   }
 }
