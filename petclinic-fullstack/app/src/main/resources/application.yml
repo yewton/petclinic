@@ -11,6 +11,8 @@ spring:
     basename: messages/messages
   reactor:
     context-propagation: auto
+  modulith:
+    detection-strategy: explicitly-annotated
 management:
   observations:
     annotations:

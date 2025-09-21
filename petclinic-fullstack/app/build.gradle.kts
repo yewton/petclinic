@@ -31,6 +31,8 @@ dependencies {
   implementation("org.jooq:jooq-kotlin")
   implementation("org.jooq:jooq-kotlin-coroutines")
 
+  implementation("org.springframework.modulith:spring-modulith-starter-core")
+
   // Tracing
   implementation("io.micrometer:micrometer-core")
   implementation("io.micrometer:micrometer-tracing-bridge-otel")
@@ -39,8 +41,6 @@ dependencies {
 
   // Logs
   implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0")
-
-  implementation("org.springframework.modulith:spring-modulith-starter-jpa")
 
   runtimeOnly("org.springframework.boot:spring-boot-starter-actuator")
   runtimeOnly("org.postgresql:postgresql")
