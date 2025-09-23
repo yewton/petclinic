@@ -6,7 +6,7 @@ jooq = "3.20.4"
 opentelemetry = "2.10.0-alpha"
 
 [libraries]
-spring-boot-plugin = "org.springframework.boot:spring-boot-gradle-plugin:3.4.1"
+spring-boot-plugin = "org.springframework.boot:spring-boot-gradle-plugin:3.5.6"
 
 # Spring Boot の依存バージョンに合わせる
 # https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
