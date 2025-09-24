@@ -22,7 +22,7 @@ jooq-meta-extensions = { module = "org.jooq:jooq-meta-extensions", version.ref =
 jooq-codegen-gradle = { module = "org.jooq:jooq-codegen-gradle", version.ref = "jooq" }
 jooq-postgres-extensions = { module = "org.jooq:jooq-postgres-extensions", version.ref = "jooq" }
 jooq-kotlin-coroutines = { module = "org.jooq:jooq-kotlin-coroutines", version.ref = "jooq" }
-spotless-plugin-gradle = "com.diffplug.spotless:spotless-plugin-gradle:7.0.4"
+spotless-plugin-gradle = "com.diffplug.spotless:spotless-plugin-gradle:7.2.1"
 foojay-resolver-convention-plugin = "org.gradle.toolchains.foojay-resolver-convention:org.gradle.toolchains.foojay-resolver-convention.gradle.plugin:1.0.0"
 opentelemetry-logback-appender = { module = "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0", version.ref = "opentelemetry" }
 opentelemetry-logback-mdc = { module = "io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0", version.ref = "opentelemetry" }
