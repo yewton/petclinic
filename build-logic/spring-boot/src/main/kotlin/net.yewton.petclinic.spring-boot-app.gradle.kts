@@ -8,10 +8,11 @@ plugins {
 
 // https://www.baeldung.com/spring-boot-auto-property-expansion
 tasks.processResources {
+  val rootDirPath = rootDir.path
   filesMatching("**/application*.yml") {
     filter<ReplaceTokens>(
       "tokens" to
-        mapOf("rootDir" to rootDir.path),
+        mapOf("rootDir" to rootDirPath),
     )
   }
 }
