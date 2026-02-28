@@ -1,3 +1,5 @@
+import java.util.Locale
+
 plugins {
   id("java")
   kotlin("jvm")
@@ -30,7 +32,15 @@ dependencies {
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
   useJUnitPlatform()
-  jvmArgs("-Xshare:off")
+  jvmArgs("-Xshare:off", "-Duser.language=ja", "-Duser.country=JP")
+}
+
+tasks.withType<JavaCompile>().configureEach {
+  with(options) {
+    isFork = true
+    isIncremental = true
+    compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked", "-Xlint:varargs"))
+  }
 }
