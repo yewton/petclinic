@@ -2,6 +2,16 @@
 import sys
 import subprocess
 
+import threading
+
+def stream_reader(pipe, write_func, log_accumulator):
+    """スレッドでストリームを読み込み、画面出力と蓄積を同時に行う"""
+    for line in iter(pipe.readline, ''):
+        write_func(line)
+        sys.stdout.flush() if write_func == sys.stdout.write else sys.stderr.flush()
+        log_accumulator.append(line)
+    pipe.close()
+
 def run_and_capture(stdout_path, stderr_path, command):
     print(f"Executing: {' '.join(command)}")
     print(f"Capturing stdout to: {stdout_path}")
@@ -17,21 +27,29 @@ def run_and_capture(stdout_path, stderr_path, command):
             universal_newlines=True
         )
 
-        stdout_text, stderr_text = process.communicate()
+        stdout_lines = []
+        stderr_lines = []
+
+        # stdout と stderr を並行して読み取るためのスレッドを開始
+        t1 = threading.Thread(target=stream_reader, args=(process.stdout, sys.stdout.write, stdout_lines))
+        t2 = threading.Thread(target=stream_reader, args=(process.stderr, sys.stderr.write, stderr_lines))
+
+        t1.start()
+        t2.start()
+
+        # 両方のスレッドが終了するのを待つ
+        t1.join()
+        t2.join()
         
-        # 画面に元の出力をそのまま流す (teeの代わり)
-        if stdout_text:
-            sys.stdout.write(stdout_text)
-        if stderr_text:
-            sys.stderr.write(stderr_text)
-            
+        process.wait()
+
         print("-" * 40)
         
-        # ファイルにも書き込む
+        # ファイルに書き込む
         with open(stdout_path, 'w', encoding='utf-8') as f:
-            f.write(stdout_text or "")
+            f.writelines(stdout_lines)
         with open(stderr_path, 'w', encoding='utf-8') as f:
-            f.write(stderr_text or "")
+            f.writelines(stderr_lines)
             
     except Exception as e:
         print(f"Error executing command: {e}", file=sys.stderr)
