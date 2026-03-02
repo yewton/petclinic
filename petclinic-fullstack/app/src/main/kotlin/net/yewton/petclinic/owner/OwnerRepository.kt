@@ -7,8 +7,10 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import net.yewton.petclinic.jooq.tables.references.OWNERS
 import net.yewton.petclinic.jooq.tables.references.PETS
+import net.yewton.petclinic.jooq.tables.references.VISITS
 import net.yewton.petclinic.pet.Pet
 import net.yewton.petclinic.pet.PetType
+import net.yewton.petclinic.visit.Visit
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.multiset
@@ -25,6 +27,15 @@ import org.springframework.transaction.annotation.Transactional
 class OwnerRepository(
   private val create: DSLContext,
 ) {
+  private fun visits() =
+    multiset(
+      select(
+        PETS.visits.ID,
+        PETS.visits.VISIT_DATE,
+        PETS.visits.DESCRIPTION,
+      ).from(PETS.visits),
+    ).intoList { Visit(it[VISITS.ID], it[VISITS.VISIT_DATE], it[VISITS.DESCRIPTION]) }
+
   private fun pets() =
     multiset(
       select(
@@ -32,8 +43,9 @@ class OwnerRepository(
         OWNERS.pets.NAME,
         OWNERS.pets.BIRTH_DATE,
         row(OWNERS.pets.types_.NAME).mapping { PetType(it) },
+        visits(),
       ).from(OWNERS.pets),
-    ).intoList { Pet(it[PETS.ID], it[PETS.NAME], it[PETS.BIRTH_DATE], it.value4(), hashSetOf()) }
+    ).intoList { Pet(it[PETS.ID], it[PETS.NAME], it[PETS.BIRTH_DATE], it.value4(), it.value5().toSet()) }
 
   @Transactional(readOnly = true)
   suspend fun findByLastName(

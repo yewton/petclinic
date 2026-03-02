@@ -58,4 +58,53 @@ class PetController(
     pets.save(pet, ownerId)
     return "redirect:/owners/$ownerId"
   }
+
+  @GetMapping("/pets/{petId}/edit")
+  suspend fun initUpdateForm(
+    @PathVariable ownerId: Int,
+    @PathVariable petId: Int,
+    model: Model,
+  ): String {
+    val owner = owners.findById(ownerId)
+    val pet = owner?.pets?.find { it.id == petId } ?: throw IllegalArgumentException("Pet not found")
+    val types = petTypes.findAll()
+    model.addAttribute("owner", owner)
+    model.addAttribute("pet", pet)
+    model.addAttribute("types", types)
+    return "pets/createOrUpdatePetForm"
+  }
+
+  @PostMapping("/pets/{petId}/edit")
+  suspend fun processUpdateForm(
+    @PathVariable ownerId: Int,
+    @PathVariable petId: Int,
+    @ModelAttribute pet: Pet,
+    result: BindingResult,
+    model: Model,
+  ): String {
+    val owner = owners.findById(ownerId)
+    val petName = pet.name
+
+    if (!petName.isNullOrBlank()) {
+      val existingPet = owner?.pets?.find { it.name == petName }
+      if (existingPet != null && existingPet.id != petId) {
+        result.rejectValue("name", "duplicate", "already exists")
+      }
+    }
+
+    val currentDate = LocalDate.now()
+    if (pet.birthDate != null && pet.birthDate.isAfter(currentDate)) {
+      result.rejectValue("birthDate", "typeMismatch.birthDate")
+    }
+
+    if (result.hasErrors()) {
+      val types = petTypes.findAll()
+      model.addAttribute("owner", owner)
+      model.addAttribute("types", types)
+      return "pets/createOrUpdatePetForm"
+    }
+
+    pets.save(pet.copy(id = petId), ownerId)
+    return "redirect:/owners/$ownerId"
+  }
 }

@@ -1,0 +1,60 @@
+package net.yewton.petclinic.visit
+
+import kotlinx.coroutines.test.runTest
+import net.yewton.petclinic.owner.OwnerRepository
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
+import org.springframework.util.LinkedMultiValueMap
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class VisitControllerIntegrationTests(
+    @Autowired private val webTestClient: WebTestClient,
+    @Autowired private val ownerRepository: OwnerRepository,
+) {
+    @Test
+    fun `should show new visit form`() {
+        webTestClient
+            .get()
+            .uri("/owners/1/pets/1/visits/new")
+            .accept(MediaType.TEXT_HTML)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<String>()
+            .value { body ->
+                assertThat(body).contains("Visit")
+                assertThat(body).contains("Add Visit")
+            }
+    }
+
+    @Test
+    fun `should process new visit form`() =
+        runTest {
+            val visitData = LinkedMultiValueMap<String, String>()
+            visitData.add("date", "2024-01-01")
+            visitData.add("description", "Rabies shot")
+
+            webTestClient
+                .post()
+                .uri("/owners/1/pets/1/visits/new")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .bodyValue(visitData)
+                .exchange()
+                .expectStatus()
+                .is3xxRedirection
+                .expectHeader()
+                .valueEquals("Location", "/owners/1")
+
+            val owner = ownerRepository.findById(1)
+            val pet = owner?.pets?.find { it.id == 1 }
+            val visit = pet?.visits?.find { it.description == "Rabies shot" }
+
+            assertThat(visit).isNotNull
+            assertThat(visit!!.date.toString()).isEqualTo("2024-01-01")
+        }
+}

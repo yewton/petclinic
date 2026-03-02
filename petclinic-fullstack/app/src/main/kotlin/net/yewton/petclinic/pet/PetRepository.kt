@@ -17,16 +17,16 @@ class PetRepository(
     pet: Pet,
     ownerId: Int,
   ): Pet {
-    if (pet.isNew()) {
-      val typeId =
-        create
-          .select(TYPES.ID)
-          .from(TYPES)
-          .where(TYPES.NAME.eq(pet.type.name))
-          .awaitFirstOrNull()
-          ?.value1()
-          ?: throw IllegalArgumentException("Pet type not found: ${pet.type.name}")
+    val typeId =
+      create
+        .select(TYPES.ID)
+        .from(TYPES)
+        .where(TYPES.NAME.eq(pet.type.name))
+        .awaitFirstOrNull()
+        ?.value1()
+        ?: throw IllegalArgumentException("Pet type not found: ${pet.type.name}")
 
+    if (pet.isNew()) {
       val newId =
         create
           .insertInto(PETS)
@@ -38,7 +38,15 @@ class PetRepository(
 
       return pet.copy(id = newId)
     } else {
-      TODO("Update functionality not implemented")
+      create
+        .update(PETS)
+        .set(PETS.NAME, pet.name)
+        .set(PETS.BIRTH_DATE, pet.birthDate)
+        .set(PETS.TYPE_ID, typeId)
+        .set(PETS.OWNER_ID, ownerId)
+        .where(PETS.ID.eq(pet.id))
+        .awaitFirstOrNull()
+      return pet
     }
   }
 }
