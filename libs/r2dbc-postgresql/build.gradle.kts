@@ -57,7 +57,10 @@ publishing {
 }
 
 tasks.withType<JavaCompile>() {
-    options.encoding = "UTF-8"
+  with(options) {
+    encoding = "UTF-8"
+    isDeprecation = true
+  }
 }
 
 tasks.withType<Javadoc>() {
