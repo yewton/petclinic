@@ -13,47 +13,47 @@ import org.springframework.util.LinkedMultiValueMap
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PetControllerIntegrationTests(
-    @Autowired private val webTestClient: WebTestClient,
-    @Autowired private val ownerRepository: OwnerRepository,
+  @Autowired private val webTestClient: WebTestClient,
+  @Autowired private val ownerRepository: OwnerRepository,
 ) {
-    @Test
-    fun `should show update pet form`() {
-        webTestClient
-            .get()
-            .uri("/owners/1/pets/1/edit")
-            .accept(MediaType.TEXT_HTML)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<String>()
-            .value { body ->
-                assertThat(body).contains("Update Pet")
-            }
+  @Test
+  fun `should show update pet form`() {
+    webTestClient
+      .get()
+      .uri("/owners/1/pets/1/edit")
+      .accept(MediaType.TEXT_HTML)
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody<String>()
+      .value { body ->
+        assertThat(body).contains("Update Pet")
+      }
+  }
+
+  @Test
+  fun `should process update pet form`() =
+    runTest {
+      val petData = LinkedMultiValueMap<String, String>()
+      petData.add("name", "Leo-Updated")
+      petData.add("birthDate", "2000-09-07")
+      petData.add("type", "cat")
+
+      webTestClient
+        .post()
+        .uri("/owners/1/pets/1/edit")
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .bodyValue(petData)
+        .exchange()
+        .expectStatus()
+        .is3xxRedirection
+        .expectHeader()
+        .valueEquals("Location", "/owners/1")
+
+      val owner = ownerRepository.findById(1)
+      val updatedPet = owner?.pets?.find { it.id == 1 }
+
+      assertThat(updatedPet).isNotNull
+      assertThat(updatedPet!!.name).isEqualTo("Leo-Updated")
     }
-
-    @Test
-    fun `should process update pet form`() =
-        runTest {
-            val petData = LinkedMultiValueMap<String, String>()
-            petData.add("name", "Leo-Updated")
-            petData.add("birthDate", "2000-09-07")
-            petData.add("type", "cat")
-
-            webTestClient
-                .post()
-                .uri("/owners/1/pets/1/edit")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .bodyValue(petData)
-                .exchange()
-                .expectStatus()
-                .is3xxRedirection
-                .expectHeader()
-                .valueEquals("Location", "/owners/1")
-
-            val owner = ownerRepository.findById(1)
-            val updatedPet = owner?.pets?.find { it.id == 1 }
-
-            assertThat(updatedPet).isNotNull
-            assertThat(updatedPet!!.name).isEqualTo("Leo-Updated")
-        }
 }
