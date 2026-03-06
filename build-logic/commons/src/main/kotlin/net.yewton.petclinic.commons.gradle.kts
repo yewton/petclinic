@@ -1,5 +1,3 @@
-import java.util.Locale
-
 plugins {
   id("java")
   kotlin("jvm")
