@@ -11,9 +11,10 @@ val editorConfigPath = listOf(
 ).map { it.toPath().resolve(".editorconfig") }
   .firstOrNull { it.toFile().exists() }
 
-tasks.withType<SpotlessTask> {
+tasks.withType<SpotlessTask>().configureEach {
+  val msg = "editorconfig = ${editorConfigPath?.toFile()?.absolutePath}"
   doFirst {
-    logger.warn("editorconfig = ${editorConfigPath?.toFile()?.absolutePath}")
+    logger.warn(msg)
   }
 }
 
