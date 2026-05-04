@@ -1,6 +1,7 @@
 package net.yewton.petclinic.pet
 
 import net.yewton.petclinic.owner.OwnerRepository
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDate
 
 @Controller
@@ -105,6 +107,17 @@ class PetController(
     }
 
     pets.save(pet.copy(id = petId), ownerId)
+    return "redirect:/owners/$ownerId"
+  }
+
+  @PostMapping("/pets/{petId}/delete")
+  suspend fun deletePet(
+    @PathVariable ownerId: Int,
+    @PathVariable petId: Int,
+  ): String {
+    val owner = owners.findById(ownerId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found")
+    owner.pets.find { it.id == petId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found")
+    pets.delete(petId)
     return "redirect:/owners/$ownerId"
   }
 }

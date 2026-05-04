@@ -4,6 +4,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import net.yewton.petclinic.jooq.tables.references.PETS
 import net.yewton.petclinic.jooq.tables.references.TYPES
+import net.yewton.petclinic.jooq.tables.references.VISITS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -48,5 +49,17 @@ class PetRepository(
         .awaitFirstOrNull()
       return pet
     }
+  }
+
+  @Transactional
+  suspend fun delete(petId: Int) {
+    create
+      .deleteFrom(VISITS)
+      .where(VISITS.PET_ID.eq(petId))
+      .awaitFirstOrNull()
+    create
+      .deleteFrom(PETS)
+      .where(PETS.ID.eq(petId))
+      .awaitFirstOrNull()
   }
 }
