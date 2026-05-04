@@ -57,4 +57,47 @@ class VisitControllerIntegrationTests(
       assertThat(visit).isNotNull
       assertThat(visit!!.date.toString()).isEqualTo("2024-01-01")
     }
+
+  @Test
+  fun `should show edit visit form`() {
+    // visit id=1 belongs to pet id=7, owner id=6
+    webTestClient
+      .get()
+      .uri("/owners/6/pets/7/visits/1/edit")
+      .accept(MediaType.TEXT_HTML)
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody<String>()
+      .value { body ->
+        assertThat(body).contains("Visit")
+        assertThat(body).contains("rabies shot")
+      }
+  }
+
+  @Test
+  fun `should process edit visit form`() =
+    runTest {
+      val visitData = LinkedMultiValueMap<String, String>()
+      visitData.add("date", "2010-03-04")
+      visitData.add("description", "Updated rabies shot")
+
+      webTestClient
+        .post()
+        .uri("/owners/6/pets/7/visits/1/edit")
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .bodyValue(visitData)
+        .exchange()
+        .expectStatus()
+        .is3xxRedirection
+        .expectHeader()
+        .valueEquals("Location", "/owners/6")
+
+      val owner = ownerRepository.findById(6)
+      val pet = owner?.pets?.find { it.id == 7 }
+      val visit = pet?.visits?.find { it.id == 1 }
+
+      assertThat(visit).isNotNull
+      assertThat(visit!!.description).isEqualTo("Updated rabies shot")
+    }
 }

@@ -51,4 +51,42 @@ class VisitController(
     visits.save(visit, petId)
     return "redirect:/owners/$ownerId"
   }
+
+  @GetMapping("/pets/{petId}/visits/{visitId}/edit")
+  suspend fun initEditVisitForm(
+    @PathVariable ownerId: Int,
+    @PathVariable petId: Int,
+    @PathVariable visitId: Int,
+    model: Model,
+  ): String {
+    val owner = owners.findById(ownerId)
+    val pet = owner?.pets?.find { it.id == petId } ?: throw IllegalArgumentException("Pet not found")
+    val visit = pet.visits.find { it.id == visitId } ?: throw IllegalArgumentException("Visit not found")
+    model.addAttribute("owner", owner)
+    model.addAttribute("pet", pet)
+    model.addAttribute("visit", visit)
+    return "pets/createOrUpdateVisitForm"
+  }
+
+  @PostMapping("/pets/{petId}/visits/{visitId}/edit")
+  suspend fun processEditVisitForm(
+    @PathVariable ownerId: Int,
+    @PathVariable petId: Int,
+    @PathVariable visitId: Int,
+    @Valid @ModelAttribute visit: Visit,
+    result: BindingResult,
+    model: Model,
+  ): String {
+    val owner = owners.findById(ownerId)
+    val pet = owner?.pets?.find { it.id == petId } ?: throw IllegalArgumentException("Pet not found")
+
+    if (result.hasErrors()) {
+      model.addAttribute("owner", owner)
+      model.addAttribute("pet", pet)
+      return "pets/createOrUpdateVisitForm"
+    }
+
+    visits.save(visit.copy(id = visitId), petId)
+    return "redirect:/owners/$ownerId"
+  }
 }
