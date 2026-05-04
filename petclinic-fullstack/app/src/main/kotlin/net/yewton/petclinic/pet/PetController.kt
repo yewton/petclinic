@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import java.time.LocalDate
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.http.HttpStatus
 
 @Controller
 @RequestMapping("/owners/{ownerId}")
@@ -105,6 +107,17 @@ class PetController(
     }
 
     pets.save(pet.copy(id = petId), ownerId)
+    return "redirect:/owners/$ownerId"
+  }
+
+  @PostMapping("/pets/{petId}/delete")
+  suspend fun deletePet(
+    @PathVariable ownerId: Int,
+    @PathVariable petId: Int,
+  ): String {
+    val owner = owners.findById(ownerId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found")
+    owner.pets.find { it.id == petId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found")
+    pets.delete(petId)
     return "redirect:/owners/$ownerId"
   }
 }
