@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (~{::body},'pettypes')}">
+
+<body>
+
+  <h2>Pet Types</h2>
+
+  <a th:href="@{/pettypes/new}" class="btn btn-primary">Add Pet Type</a>
+
+  <br />
+  <br />
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="petType : ${petTypes}">
+        <td th:text="${petType.name}"></td>
+        <td>
+          <a th:href="@{/pettypes/__${petType.id}__/edit}" class="btn btn-sm btn-primary">Edit</a>
+          <form th:action="@{/pettypes/__${petType.id}__/delete}" method="post" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-danger"
+              onclick="return confirm('このペットタイプを削除してもよろしいですか？')">Delete</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+
+</html>

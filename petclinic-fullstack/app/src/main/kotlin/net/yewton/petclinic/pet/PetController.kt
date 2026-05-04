@@ -28,7 +28,7 @@ class PetController(
     val owner = owners.findById(ownerId)
     val types = petTypes.findAll()
     model.addAttribute("owner", owner)
-    model.addAttribute("pet", Pet(null, "", null, PetType("cat"), hashSetOf()))
+    model.addAttribute("pet", Pet(null, "", null, PetType(name = "cat"), hashSetOf()))
     model.addAttribute("types", types)
     return "pets/createOrUpdatePetForm"
   }

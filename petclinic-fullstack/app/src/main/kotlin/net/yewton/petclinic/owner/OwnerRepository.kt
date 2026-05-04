@@ -42,7 +42,7 @@ class OwnerRepository(
         OWNERS.pets.ID,
         OWNERS.pets.NAME,
         OWNERS.pets.BIRTH_DATE,
-        row(OWNERS.pets.types_.NAME).mapping { PetType(it) },
+        row(OWNERS.pets.types_.ID, OWNERS.pets.types_.NAME).mapping { id, name -> PetType(id, name) },
         visits(),
       ).from(OWNERS.pets),
     ).intoList { Pet(it[PETS.ID], it[PETS.NAME], it[PETS.BIRTH_DATE], it.value4(), it.value5().toSet()) }
