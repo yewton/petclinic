@@ -1,3 +1,5 @@
+.env
+
 # Gradle に任せる
 .idea/modules.xml
 .idea/modules/*
