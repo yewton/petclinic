@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:18.1@sha256:1090bc3a8ccfb0b55f78a494d76f8d603434f7e4553543d6e807bc7bd6bbd17f
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     environment:
       - POSTGRES_PASSWORD=petclinic
       - POSTGRES_USER=petclinic
@@ -10,9 +10,9 @@ services:
   alloy:
     image: grafana/alloy:v1.10.2@sha256:bcf27f18c4402869af112fb39e35e1db3804a404686f4caa20bdf77814219223
     ports:
-      - "12345:12345" # alloy
-      - "4317:4317" # OTLP/gRPC
-      - "4318:4318" # OTLP/HTTP
+      - "${ALLOY_MGMT_PORT:-12345}:12345" # alloy
+      - "${ALLOY_OTLP_GRPC_PORT:-4317}:4317" # OTLP/gRPC
+      - "${ALLOY_OTLP_HTTP_PORT:-4318}:4318" # OTLP/HTTP
 #      - "12348:12348" # ???
 #      - "6832:6832" # jaeger.thrift over binary thrift protocol
 #      - "55679:55679" # zpages https://github.com/open-telemetry/opentelemetry-collector/blob/main/extension/zpagesextension/README.md
@@ -29,7 +29,7 @@ services:
     volumes:
       - "./config/grafana/provisioning:/etc/grafana/provisioning"
     ports:
-      - "3000:3000"
+      - "${GRAFANA_PORT:-3000}:3000"
     environment:
       - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor traceToMetrics traceToProfiles datatrails
       - GF_INSTALL_PLUGINS=grafana-lokiexplore-app,grafana-exploretraces-app,grafana-pyroscope-app
@@ -40,20 +40,20 @@ services:
     image: grafana/mimir:2.17.1@sha256:f97a1a6885a0c8ee80bc8f14343183dd67e9786cfbc18198d9a4138354fda55e
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
-      - "9009:9009"
+      - "${MIMIR_PORT:-9009}:9009"
     volumes:
       - "./config/mimir.yaml:/etc/mimir.yaml"
   loki: # ログ
     image: grafana/loki:3.5.5@sha256:31628519045e7f28692a7ae73b4a3fd293dccb425585ed5d16ceea3b5c9592e6
     command: ["-config.file=/etc/loki/loki.yaml"]
     ports:
-      - "3100:3100"
+      - "${LOKI_PORT:-3100}:3100"
     volumes:
       - "./config/loki.yaml:/etc/loki/loki.yaml"
   tempo: # トレース
     image: grafana/tempo:2.8.2@sha256:0ef775495967cd5d7a6b2e146b6ea695d624803c8db8349fb8ce4164f719f9b7
     ports:
-      - "3200:3200"
+      - "${TEMPO_PORT:-3200}:3200"
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - "./config/tempo.yaml:/etc/tempo.yaml"

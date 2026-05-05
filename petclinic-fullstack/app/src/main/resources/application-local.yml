@@ -20,12 +20,12 @@ management:
   otlp:
     metrics:
       export:
-        url: "http://localhost:4318/v1/metrics"
+        url: "http://localhost:${ALLOY_OTLP_HTTP_PORT:4318}/v1/metrics"
     logging:
-      endpoint: "http://localhost:4317"
+      endpoint: "http://localhost:${ALLOY_OTLP_GRPC_PORT:4317}"
       transport: grpc
     tracing:
-      endpoint: "http://localhost:4317"
+      endpoint: "http://localhost:${ALLOY_OTLP_GRPC_PORT:4317}"
       transport: grpc
   endpoint:
     health:
