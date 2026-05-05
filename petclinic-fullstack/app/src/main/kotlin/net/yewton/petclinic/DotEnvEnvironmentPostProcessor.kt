@@ -26,12 +26,11 @@ class DotEnvEnvironmentPostProcessor : EnvironmentPostProcessor {
   }
 
   private fun findEnvFile(): File? {
-    var dir = File("").absoluteFile
-    while (true) {
+    for (dir in generateSequence(File("").absoluteFile) { it.parentFile }) {
       val candidate = File(dir, ".env")
       if (candidate.isFile) return candidate
       if (File(dir, ".git").exists()) return null
-      dir = dir.parentFile ?: return null
     }
+    return null
   }
 }
