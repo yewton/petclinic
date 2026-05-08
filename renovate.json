@@ -5,5 +5,16 @@
   ],
   "ignorePaths": [
     "libs/**"
+  ],
+  "packageRules": [
+    {
+      "description": "Spring Boot のマネージドバージョンに合わせて手動更新するため Renovate 対象外",
+      "matchPackageNames": [
+        "org.jetbrains.kotlin:{/,}**",
+        "org.jooq:{/,}**",
+        "io.spring.gradle:dependency-management-plugin"
+      ],
+      "enabled": false
+    }
   ]
 }
