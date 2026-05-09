@@ -20,8 +20,12 @@ distributor:
         thrift_compact:
     otlp:
       protocols:
+        # otelcol-contrib v0.110+ では endpoint 未指定時に localhost にバインドされ、別コンテナの Alloy から到達できない。
+        # 明示的に 0.0.0.0 を指定して docker network 経由のアクセスを許可する。
         http:
+          endpoint: "0.0.0.0:4318"
         grpc:            # This example repository only utilises the OTLP gRPC receiver on port 4317.
+          endpoint: "0.0.0.0:4317"
     zipkin:              # Receive trace data in any supported Zipkin format.
 
 # The ingester receives data from the distributor and processes it into indices and blocks.
