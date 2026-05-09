@@ -4,14 +4,17 @@ import org.assertj.core.api.WithAssertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 
 @SpringBootTest(
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-  properties = ["server.error.include-message=ALWAYS", "management.endpoints.enabled-by-default=false"],
+  // Spring Boot 4.0 で `server.error.include-*` は `spring.web.error.include-*` に移動
+  properties = ["spring.web.error.include-message=ALWAYS", "management.endpoints.enabled-by-default=false"],
 )
+@AutoConfigureWebTestClient
 class CrashControllerTest : WithAssertions {
   @Test
   fun testTriggerExceptionHtml(
