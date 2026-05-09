@@ -54,5 +54,14 @@ Controllers detect the `HX-Request` header and return Thymeleaf fragment selecto
 ### Testing
 Tests use `@SpringBootTest(webEnvironment = RANDOM_PORT)` + `WebTestClient` + Testcontainers (PostgreSQL 16.3 via R2DBC TC URL). The test profile (`application-test.yml`) initialises the schema and seed data on startup. Use `assertThat` from AssertJ (`WithAssertions`) for assertions.
 
+**Kotlin annotation targets**: When injecting dependencies via primary constructor parameters that are also properties (`val`/`var`), always use explicit `@param:` target to avoid the annotation being applied to the backing field in future Kotlin versions ([KT-73255](https://youtrack.jetbrains.com/issue/KT-73255)):
+```kotlin
+// correct
+class MyTest(@param:Autowired private val client: WebTestClient)
+
+// wrong — generates compiler warning
+class MyTest(@Autowired private val client: WebTestClient)
+```
+
 ### Local development
 The `local` Spring profile (default) uses `spring-boot-docker-compose` to start PostgreSQL automatically from `docker-compose.yml`. No manual Docker commands needed for `bootRun`.
