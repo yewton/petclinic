@@ -13,8 +13,8 @@ import org.springframework.util.LinkedMultiValueMap
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PetControllerIntegrationTests(
-  @Autowired private val webTestClient: WebTestClient,
-  @Autowired private val ownerRepository: OwnerRepository,
+  @param:Autowired private val webTestClient: WebTestClient,
+  @param:Autowired private val ownerRepository: OwnerRepository,
 ) {
   @Test
   fun `should show update pet form`() {

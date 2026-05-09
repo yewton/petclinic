@@ -55,7 +55,7 @@ import java.time.Duration
 // 実エクスポート経路を検証するため `@AutoConfigureObservability` を付与する。
 @AutoConfigureObservability
 class PetclinicObservabilityEndToEndTests(
-  @Autowired private val webTestClient: WebTestClient,
+  @param:Autowired private val webTestClient: WebTestClient,
 ) : WithAssertions {
   private fun fireApplicationRequests() {
     repeat(REQUESTS) {
