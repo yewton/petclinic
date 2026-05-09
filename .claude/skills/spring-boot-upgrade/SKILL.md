@@ -81,5 +81,4 @@ git diff --stat petclinic-fullstack/app/src/main/jooq
 
 - **`spring-boot-gradle-plugin` と `dependency-management-plugin` は別々に宣言されている**（`build-logic/dependency-management/build.gradle.kts`、`build-logic/spring-boot/build.gradle.kts`）。`platforms/plugins-platform/build.gradle.kts` の `constraints` を経由してカタログのバージョンに固定されるので、変更点はあくまで `libs.versions.toml` のみ。build-logic 側を直接編集する必要はない。
 - **Kotlin プラグインバージョンを上げる場合**は、Spring Boot のマネージド版に合わせる。それより新しい版に上げたいという別要件があれば、本 Skill のスコープを超えるため別タスクで扱う。
-- **jOOQ を Spring Boot のマネージド版より新しくしてはいけない**（過去にコミット `7261eb5` で誤って 3.20.11 まで上げてしまった事故あり）。`renovate.json` の `packageRules` で防いでいる。
 - マイナー以上の昇格（例: 3.5 → 3.6, 3 → 4）では、Spring Framework / Reactor / Kotlin などの **メジャー or マイナー昇格** を伴うことがある。その場合はリリースノートの "Upgrade Notes" / migration guide を必ず読み、JDK 要件・廃止 API・設定プロパティ名変更を点検する。
