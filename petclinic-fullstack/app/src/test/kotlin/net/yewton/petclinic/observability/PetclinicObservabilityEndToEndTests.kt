@@ -8,8 +8,10 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability
+import org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics
+import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -45,15 +47,20 @@ import java.time.Duration
     "spring.application.name=" + PetclinicObservabilityEndToEndTests.SERVICE_NAME,
     "management.tracing.sampling.probability=1.0",
     "management.otlp.metrics.export.step=1s",
-    // application-local.yml に合わせて gRPC で送る (Spring Boot のデフォルトは http)
-    "management.otlp.tracing.transport=grpc",
-    "management.otlp.logging.transport=grpc",
+    // application-local.yml に合わせて gRPC で送る (Spring Boot のデフォルトは http)。
+    // Spring Boot 4.0 で `management.otlp.{tracing,logging}` は
+    // `management.opentelemetry.{tracing,logging}.export.otlp` に移動。
+    "management.opentelemetry.tracing.export.otlp.transport=grpc",
+    "management.opentelemetry.logging.export.otlp.transport=grpc",
   ],
 )
 // @SpringBootTest は既定で `management.defaults.metrics.export.enabled=false` 相当を適用し、
-// メトリクス/トレース/ログのエクスポーターを無効化する。本テストではこの抑止を解除して
-// 実エクスポート経路を検証するため `@AutoConfigureObservability` を付与する。
-@AutoConfigureObservability
+// メトリクス/トレースのエクスポーターを無効化する。本テストではこの抑止を解除して
+// 実エクスポート経路を検証するため `@AutoConfigureMetrics` と `@AutoConfigureTracing` を付与する。
+// (Spring Boot 4.0 で `@AutoConfigureObservability` が分割された)
+@AutoConfigureMetrics
+@AutoConfigureTracing
+@AutoConfigureWebTestClient
 class PetclinicObservabilityEndToEndTests(
   @param:Autowired private val webTestClient: WebTestClient,
 ) : WithAssertions {
@@ -190,10 +197,10 @@ class PetclinicObservabilityEndToEndTests(
     @JvmStatic
     @DynamicPropertySource
     fun overrideOtlpEndpoints(registry: DynamicPropertyRegistry) {
-      registry.add("management.otlp.tracing.endpoint") {
+      registry.add("management.opentelemetry.tracing.export.otlp.endpoint") {
         "http://${compose.getServiceHost("alloy", ALLOY_OTLP_GRPC)}:${compose.getServicePort("alloy", ALLOY_OTLP_GRPC)}"
       }
-      registry.add("management.otlp.logging.endpoint") {
+      registry.add("management.opentelemetry.logging.export.otlp.endpoint") {
         "http://${compose.getServiceHost("alloy", ALLOY_OTLP_GRPC)}:${compose.getServicePort("alloy", ALLOY_OTLP_GRPC)}"
       }
       registry.add("management.otlp.metrics.export.url") {

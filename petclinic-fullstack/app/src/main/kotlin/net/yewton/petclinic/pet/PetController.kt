@@ -47,7 +47,7 @@ class PetController(
     }
 
     val currentDate = LocalDate.now()
-    if (pet.birthDate != null && pet.birthDate!!.isAfter(currentDate)) {
+    if (pet.birthDate != null && pet.birthDate.isAfter(currentDate)) {
       result.rejectValue("birthDate", "typeMismatch.birthDate")
     }
 

@@ -21,12 +21,19 @@ management:
     metrics:
       export:
         url: "http://localhost:${ALLOY_OTLP_HTTP_PORT:4318}/v1/metrics"
+  # Spring Boot 4.0 で `management.otlp.{tracing,logging}` は
+  # `management.opentelemetry.{tracing,logging}.export.otlp` に移動
+  opentelemetry:
     logging:
-      endpoint: "http://localhost:${ALLOY_OTLP_GRPC_PORT:4317}"
-      transport: grpc
+      export:
+        otlp:
+          endpoint: "http://localhost:${ALLOY_OTLP_GRPC_PORT:4317}"
+          transport: grpc
     tracing:
-      endpoint: "http://localhost:${ALLOY_OTLP_GRPC_PORT:4317}"
-      transport: grpc
+      export:
+        otlp:
+          endpoint: "http://localhost:${ALLOY_OTLP_GRPC_PORT:4317}"
+          transport: grpc
   endpoint:
     health:
       show-details: always
