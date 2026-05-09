@@ -20,6 +20,7 @@ import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.testcontainers.containers.ComposeContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.yaml.snakeyaml.Yaml
@@ -31,8 +32,10 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.nio.file.Path
 import java.time.Duration
 import java.util.Base64
+import java.util.HexFormat
 import java.util.concurrent.TimeUnit
 
 /**
@@ -70,7 +73,7 @@ class ObservabilityStackIntegrationTests : WithAssertions {
         tracerProvider.shutdown().join(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
       }
 
-    val traceIdBase64 = Base64.getEncoder().encodeToString(hexToBytes(traceId))
+    val traceIdBase64 = Base64.getEncoder().encodeToString(HexFormat.of().parseHex(traceId))
     await()
       .atMost(POLL_TIMEOUT)
       .pollInterval(POLL_INTERVAL)
@@ -82,13 +85,6 @@ class ObservabilityStackIntegrationTests : WithAssertions {
           .contains(traceIdBase64)
           .contains(SPAN_NAME)
       }
-  }
-
-  private fun hexToBytes(hex: String): ByteArray {
-    require(hex.length % 2 == 0)
-    return ByteArray(hex.length / 2) { i ->
-      ((Character.digit(hex[i * 2], 16) shl 4) + Character.digit(hex[i * 2 + 1], 16)).toByte()
-    }
   }
 
   @Test
@@ -229,26 +225,30 @@ class ObservabilityStackIntegrationTests : WithAssertions {
         .connectTimeout(Duration.ofSeconds(5))
         .build()
 
-    private val compose: ComposeContainer by lazy {
+    @JvmStatic
+    @TempDir
+    lateinit var tempDir: Path
+
+    private lateinit var compose: ComposeContainer
+
+    @JvmStatic
+    @BeforeAll
+    fun startStack() {
       val readyWait =
         Wait
           .forHttp("/ready")
           .forStatusCodeMatching { it in 200..399 }
           .withStartupTimeout(Duration.ofMinutes(3))
-      ComposeContainer(prepareComposeFile(locateComposeFile()))
-        .withServices("alloy", "mimir", "loki", "tempo")
-        .withExposedService(
-          "alloy",
-          ALLOY_OTLP_HTTP,
-          Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)),
-        ).withExposedService("loki", LOKI_HTTP, readyWait)
-        .withExposedService("mimir", MIMIR_HTTP, readyWait)
-        .withExposedService("tempo", TEMPO_HTTP, readyWait)
-    }
-
-    @JvmStatic
-    @BeforeAll
-    fun startStack() {
+      compose =
+        ComposeContainer(prepareComposeFile(locateComposeFile(), tempDir))
+          .withServices("alloy", "mimir", "loki", "tempo")
+          .withExposedService(
+            "alloy",
+            ALLOY_OTLP_HTTP,
+            Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)),
+          ).withExposedService("loki", LOKI_HTTP, readyWait)
+          .withExposedService("mimir", MIMIR_HTTP, readyWait)
+          .withExposedService("tempo", TEMPO_HTTP, readyWait)
       compose.start()
     }
 
@@ -289,7 +289,10 @@ class ObservabilityStackIntegrationTests : WithAssertions {
      * volumes の相対パスは元ファイルからの解決ができないため絶対パスへ書き換える。
      */
     @Suppress("UNCHECKED_CAST")
-    private fun prepareComposeFile(original: File): File {
+    private fun prepareComposeFile(
+      original: File,
+      tempDir: Path,
+    ): File {
       val rootDir = original.parentFile.absoluteFile
       val yaml = Yaml()
       val tree =
@@ -307,8 +310,7 @@ class ObservabilityStackIntegrationTests : WithAssertions {
         svc
       }
       tree["services"] = services
-      val temp = Files.createTempFile("petclinic-observability-compose-", ".yml").toFile()
-      temp.deleteOnExit()
+      val temp = Files.createTempFile(tempDir, "petclinic-observability-compose-", ".yml").toFile()
       temp.writeText(yaml.dump(tree))
       return temp
     }
