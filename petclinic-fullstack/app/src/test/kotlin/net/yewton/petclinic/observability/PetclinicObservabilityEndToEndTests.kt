@@ -57,8 +57,7 @@ import java.time.Duration
 class PetclinicObservabilityEndToEndTests(
   @Autowired private val webTestClient: WebTestClient,
 ) : WithAssertions {
-  @Test
-  fun `application requests produce traces metrics and logs in the observability stack`() {
+  private fun fireApplicationRequests() {
     repeat(REQUESTS) {
       webTestClient
         .get()
@@ -68,7 +67,11 @@ class PetclinicObservabilityEndToEndTests(
         .expectStatus()
         .isOk
     }
+  }
 
+  @Test
+  fun `traces are ingested by Tempo`() {
+    fireApplicationRequests()
     await()
       .atMost(POLL_TIMEOUT)
       .pollInterval(POLL_INTERVAL)
@@ -81,7 +84,11 @@ class PetclinicObservabilityEndToEndTests(
         assertThat(traces.isArray).isTrue()
         assertThat(traces.size()).isGreaterThan(0)
       }
+  }
 
+  @Test
+  fun `metrics are ingested by Mimir`() {
+    fireApplicationRequests()
     await()
       .atMost(POLL_TIMEOUT)
       .pollInterval(POLL_INTERVAL)
@@ -94,7 +101,11 @@ class PetclinicObservabilityEndToEndTests(
         assertThat(resultArr.isArray).isTrue()
         assertThat(resultArr.size()).isGreaterThan(0)
       }
+  }
 
+  @Test
+  fun `logs are ingested by Loki`() {
+    fireApplicationRequests()
     await()
       .atMost(POLL_TIMEOUT)
       .pollInterval(POLL_INTERVAL)
