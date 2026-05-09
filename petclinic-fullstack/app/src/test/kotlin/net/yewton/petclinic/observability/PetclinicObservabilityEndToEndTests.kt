@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -47,13 +48,12 @@ import java.time.Duration
     // application-local.yml に合わせて gRPC で送る (Spring Boot のデフォルトは http)
     "management.otlp.tracing.transport=grpc",
     "management.otlp.logging.transport=grpc",
-    // Spring Boot のオブザーバビリティ自動構成は、エンドポイント明示のみではエクスポーターを
-    // 生成しないため、各シグナルのエクスポーターを明示的に有効化する。
-    "management.otlp.tracing.export.enabled=true",
-    "management.otlp.metrics.export.enabled=true",
-    "management.otlp.logging.export.enabled=true",
   ],
 )
+// @SpringBootTest は既定で `management.defaults.metrics.export.enabled=false` 相当を適用し、
+// メトリクス/トレース/ログのエクスポーターを無効化する。本テストではこの抑止を解除して
+// 実エクスポート経路を検証するため `@AutoConfigureObservability` を付与する。
+@AutoConfigureObservability
 class PetclinicObservabilityEndToEndTests(
   @Autowired private val webTestClient: WebTestClient,
 ) : WithAssertions {
