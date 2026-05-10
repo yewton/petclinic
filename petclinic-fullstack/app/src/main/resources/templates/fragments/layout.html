@@ -75,6 +75,11 @@
             <span>Pet Types</span>
           </li>
 
+          <li th:replace="~{::menuItem ('/specialties','specialties','manage specialties','th-list','Specialties')}">
+            <span class="fa fa-th-list" aria-hidden="true"></span>
+            <span>Specialties</span>
+          </li>
+
           <li
             th:replace="~{::menuItem ('/oups','error','trigger a RuntimeException to see how it is handled','exclamation-triangle','Error')}">
             <span class="fa exclamation-triangle" aria-hidden="true"></span>

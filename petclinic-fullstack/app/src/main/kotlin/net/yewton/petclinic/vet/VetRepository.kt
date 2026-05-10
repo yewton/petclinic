@@ -165,7 +165,7 @@ class VetRepository(
                 .mapNotNull {
                   it["specialty_name"] as String?
                 }.map {
-                  Specialty(it)
+                  Specialty(name = it)
                 }
             val row = rows.first()
             Vet(
@@ -186,7 +186,7 @@ class VetRepository(
         VETS.LAST_NAME,
         multiset(
           selectFrom(VETS.specialties),
-        ).intoList { Specialty(it.name) },
+        ).intoList { Specialty(it.id, it.name) },
         count().over(),
       ).from(VETS)
       .orderBy(VETS.ID.asc())
