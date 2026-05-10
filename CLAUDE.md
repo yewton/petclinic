@@ -17,6 +17,45 @@ CI runs: `./gradlew check --parallel --warning-mode all --build-cache --configur
 1. Before implementing, check `references/spring-petclinic` for the reference implementation of any missing feature.
 2. After changes, run `./gradlew spotlessApply` then `./gradlew check`.
 
+## Pull Request の作成
+
+PR を作成するときは `.github/PULL_REQUEST_TEMPLATE.md` の構造に従う。
+
+### 必須要素
+
+- **`closes #<issue番号>`** — 冒頭に記載する
+- **変更ファイル一覧と読む順序** — テーブル形式で、レビュアーが読む順番を明示する
+- **クラス図（Mermaid）** — 新規クラスや既存クラスの変更を伴う場合
+- **シーケンス図（Mermaid）** — ユーザー操作ごとに1図。HTTPメソッド・パス・分岐を示す
+- **レビュー観点と私の原案** — 下記ルールを守る
+
+### レビュー観点の書き方ルール
+
+「確認してください」で終わらせない。各観点には必ず次の2点を記載する：
+
+1. **原案（結論）**: 「問題なし」「〇〇の方が適切」など、自分の判断を一言で示す
+2. **根拠**: 調査結果・コード grep 結果・他実装との比較・トレードオフなど
+
+例：
+```
+### isInUse() による削除ガード — 409 Conflict の妥当性
+
+**原案：現状の設計で問題ないが、TOCTOU の懸念は将来課題として記録する。**
+
+- 409 は RFC 9110 的に正しく、PetTypeController と一貫している。
+- isInUse() と delete() が別トランザクションのため TOCTOU は存在するが、
+  DB の FK 制約が最終ガードとなるため実害は限定的。
+```
+
+### 影響範囲の調査
+
+コンストラクタや型シグネチャを変更した場合は、PR 説明に調査結果を記載する：
+
+```bash
+grep -rn "ClassName" src/main/kotlin/ --include="*.kt"
+grep -rn "ClassName" src/test/ --include="*.kt"
+```
+
 ## Architecture
 
 This is a Spring Boot application using **Spring WebFlux + Kotlin Coroutines** (no blocking I/O) with **Thymeleaf** server-side rendering and **HTMX** for partial page updates.
