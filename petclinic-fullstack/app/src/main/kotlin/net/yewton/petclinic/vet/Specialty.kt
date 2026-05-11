@@ -1,5 +1,13 @@
 package net.yewton.petclinic.vet
 
+import jakarta.validation.constraints.NotBlank
+
 data class Specialty(
-  val name: String?,
-)
+  val id: Int? = null,
+  @field:NotBlank
+  val name: String? = null,
+) {
+  override fun toString(): String = name ?: ""
+
+  fun isNew(): Boolean = id == null
+}
