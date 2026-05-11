@@ -20,7 +20,7 @@ listOf(
 
 tasks.named("spotlessApply") {
   dependsOn(
-    listOf("build-logic", "petclinic-fullstack")
+    listOf("build-logic", "core", "fullstack-html", "fullstack-htmx")
       .map { gradle.includedBuild(it) }
       .map { it.task(":$name") },
   )

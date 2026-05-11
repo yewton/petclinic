@@ -6,9 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Build & verify**: `./gradlew check` — must pass before committing
 - **Format**: `./gradlew spotlessApply` — enforces ktlint via Spotless
-- **JOOQ codegen**: `./gradlew :petclinic-fullstack:app:jooqCodegen` — regenerate after schema changes
-- **Run app**: `./gradlew :petclinic-fullstack:app:bootRun`
-- **Single test class**: `./gradlew :petclinic-fullstack:app:test --tests "net.yewton.petclinic.owner.OwnerControllerIntegrationTests"`
+- **JOOQ codegen**: `./gradlew :core:lib:jooqCodegen` — regenerate after schema changes
+- **Run apps**:
+  - プレーンHTML版: `./gradlew :fullstack-html:app:bootRun`
+  - HTMX版: `./gradlew :fullstack-htmx:app:bootRun`
+- **Single test class**: `./gradlew :fullstack-html:app:test --tests "net.yewton.petclinic.owner.OwnerControllerIntegrationTests"` (HTMX 版なら `:fullstack-htmx:app:test`)
 
 CI runs: `./gradlew check --parallel --warning-mode all --build-cache --configuration-cache`
 
@@ -58,25 +60,35 @@ grep -rn "ClassName" src/test/ --include="*.kt"
 
 ## Architecture
 
-This is a Spring Boot application using **Spring WebFlux + Kotlin Coroutines** (no blocking I/O) with **Thymeleaf** server-side rendering and **HTMX** for partial page updates.
+This is a Spring Boot application using **Spring WebFlux + Kotlin Coroutines** (no blocking I/O) with **Thymeleaf** server-side rendering. プレーンHTML 版と HTMX 版の 2 つのアプリケーション composite build に分割されており、共通処理は `core` composite build に切り出されている。
 
 ### Stack
 - **Database**: PostgreSQL via R2DBC (reactive); queries written with **jOOQ** DSL (not Spring Data repositories for most queries)
 - **Async**: All controller methods and repository methods are `suspend fun`; Reactor `Mono`/`Flux` are used in some places and interop via `kotlinx-coroutines-reactive`
 - **Observability**: OpenTelemetry traces/metrics/logs exported via OTLP; local stack (Grafana/Tempo/Loki/Mimir) configured in `docker-compose.yml`
 
-### Module layout
+### Module layout (composite builds × multi-project)
 ```
-petclinic-fullstack/app/   — main application
-  src/main/kotlin/         — domain packages: owner/, pet/, visit/, vet/, system/, welcome/
-  src/main/jooq/           — generated JOOQ classes (do not edit manually)
-  src/main/resources/db/   — schema.sql (DDL source for JOOQ codegen) + data.sql (seed)
-  src/test/                — integration tests using Testcontainers + WebTestClient
-build-logic/               — custom Gradle convention plugins
-lint-logic/                — Spotless/ktlint configuration
-platforms/                 — version catalog (libs.versions.toml) and platform BOMs
-references/                — git submodules; spring-petclinic is the reference implementation
+core/                              — 共通ライブラリ composite build
+  lib/src/main/kotlin/             — ドメインパッケージ: model/, owner/, pet/, visit/, vet/
+  lib/src/main/jooq/               — generated JOOQ classes (do not edit manually)
+  lib/src/main/resources/db/       — schema.sql (DDL source for JOOQ codegen) + data.sql (seed)
+  lib/src/main/resources/templates/fragments/   — inputField.html, selectField.html (両アプリ共通)
+  lib/src/test/                    — VetRepositoryTest (TestApplication.kt で最小コンテキスト起動)
+fullstack-html/                    — プレーンHTML版アプリ composite build
+  app/src/main/kotlin/             — Controllers (HTMX分岐なし版の OwnerController を含む)
+  app/src/main/resources/templates/ — HTMX を含まないテンプレート (layout.html, owners/* など)
+  app/src/test/                    — integration tests using Testcontainers + WebTestClient
+fullstack-htmx/                    — HTMX版アプリ composite build (構成は fullstack-html と同じ)
+  app/src/main/kotlin/             — HTMX対応 OwnerController を含む Controllers
+  app/src/main/resources/templates/ — HTMX 用フラグメント・モーダルを含むテンプレート
+build-logic/                       — custom Gradle convention plugins
+lint-logic/                        — Spotless/ktlint configuration
+platforms/                         — version catalog (libs.versions.toml) and platform BOMs
+references/                        — git submodules; spring-petclinic is the reference implementation
 ```
+
+ルート `settings.gradle.kts` は `core`、`fullstack-html`、`fullstack-htmx` を `includeBuild` で取り込む。各アプリの `settings.gradle.kts` も `includeBuild("../core")` を宣言し、`implementation("net.yewton.petclinic:lib")` で core を参照する (Gradle が composite build の dependency substitution を行う)。
 
 ### Domain packages
 Each domain package (`owner`, `pet`, `visit`, `vet`) follows the same pattern:
@@ -85,10 +97,10 @@ Each domain package (`owner`, `pet`, `visit`, `vet`) follows the same pattern:
 - **Controller** — `@Controller` with `suspend fun` handlers; returns Thymeleaf view names
 
 ### JOOQ usage
-Generated classes live in `src/main/jooq/net/yewton/petclinic/jooq/`. Repositories use `multiset` + `intoList` for nested object mapping (e.g. fetching pets with their visits in a single query). Run `jooqCodegen` whenever `schema.sql` changes.
+Generated classes live in `core/lib/src/main/jooq/net/yewton/petclinic/jooq/`. Repositories use `multiset` + `intoList` for nested object mapping (e.g. fetching pets with their visits in a single query). Run `:core:lib:jooqCodegen` whenever `core/lib/src/main/resources/db/schema.sql` changes.
 
-### HTMX partial rendering
-Controllers detect the `HX-Request` header and return Thymeleaf fragment selectors (e.g. `"owners/findOwners :: #search-owner-form"`) instead of full pages. For validation errors on HTMX requests, set `response.statusCode = HttpStatus.UNPROCESSABLE_ENTITY`.
+### HTMX partial rendering (fullstack-htmx のみ)
+`fullstack-htmx` 側の Controllers では `HX-Request` ヘッダを検出して Thymeleaf フラグメントセレクタ (例: `"owners/findOwners :: #search-owner-form"`) を返す。HTMX 経由のバリデーションエラーでは `response.statusCode = HttpStatus.UNPROCESSABLE_ENTITY` をセットする。`fullstack-html` 側にはこの分岐はなく、常にフルページを返す。
 
 ### Testing
 Tests use `@SpringBootTest(webEnvironment = RANDOM_PORT)` + `WebTestClient` + Testcontainers (PostgreSQL 16.3 via R2DBC TC URL). The test profile (`application-test.yml`) initialises the schema and seed data on startup. Use `assertThat` from AssertJ (`WithAssertions`) for assertions.

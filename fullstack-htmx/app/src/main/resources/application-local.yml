@@ -1,0 +1,46 @@
+logging:
+  level:
+    io.r2dbc: TRACE
+    org.jooq: TRACE
+    org.springframework.r2dbc: TRACE
+    org.springframework.transaction.interceptor.TransactionInterceptor: TRACE
+    org.springframework.transaction.reactive.AbstractReactiveTransactionManager: TRACE
+    web: DEBUG
+spring:
+  sql:
+    init:
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
+      # SQL は冪等に書かれているのでこれでも安全
+      mode: always
+  docker:
+    compose:
+      file: @rootDir@/../docker-compose.yml
+management:
+  otlp:
+    metrics:
+      export:
+        url: "http://localhost:${ALLOY_OTLP_HTTP_PORT:4318}/v1/metrics"
+  # Spring Boot 4.0 で `management.otlp.{tracing,logging}` は
+  # `management.opentelemetry.{tracing,logging}.export.otlp` に移動
+  opentelemetry:
+    logging:
+      export:
+        otlp:
+          endpoint: "http://localhost:${ALLOY_OTLP_GRPC_PORT:4317}"
+          transport: grpc
+    tracing:
+      export:
+        otlp:
+          endpoint: "http://localhost:${ALLOY_OTLP_GRPC_PORT:4317}"
+          transport: grpc
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  tracing:
+    sampling:
+      probability: 1.0

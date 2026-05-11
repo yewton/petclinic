@@ -1,0 +1,33 @@
+<html xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (~{::body},'owners')}">
+
+<body>
+
+  <h2>飼い主を見つける</h2>
+
+  <form th:object="${owner}" th:action="@{/owners}" method="get"
+    class="form-horizontal" id="search-owner-form">
+    <div class="form-group" id="search-owner-form-fields">
+      <div class="control-group" id="lastNameGroup">
+        <label class="col-sm-2 control-label">姓 </label>
+        <div class="col-sm-10">
+          <input class="form-control" th:field="*{lastName}" size="30"
+            maxlength="80" /> <div class="help-block"><div
+              th:if="${#fields.hasAnyErrors()}">
+              <p th:each="err : ${#fields.allErrors()}" th:text="${err}">Error</p>
+            </div></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-primary">飼い主を見つける</button>
+      </div>
+    </div>
+
+    <a class="btn btn-primary" th:href="@{/owners/new}">飼い主を追加する</a>
+
+  </form>
+
+</body>
+</html>
