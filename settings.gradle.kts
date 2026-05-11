@@ -10,4 +10,6 @@ includeBuild("lint-logic")
 includeBuild("platforms")
 includeBuild("build-logic")
 
-includeBuild("petclinic-fullstack")
+includeBuild("core")
+includeBuild("fullstack-html")
+includeBuild("fullstack-htmx")

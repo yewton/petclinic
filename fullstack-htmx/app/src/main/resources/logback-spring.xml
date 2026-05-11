@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <!-- https://opentelemetry.io/docs/specs/semconv/attributes-registry/process/#process-pid -->
+  <springProperty scope="context" name="process.pid" source="spring.application.pid" />
+
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>
+        %d{HH:mm:ss.SSS} [%thread] trace_id=%X{traceId:-null} span_id=%X{spanId:-null} trace_flags=%X{trace_flags:-01} %-5level %logger{36} - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+  <appender name="OpenTelemetry"
+            class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
+    <!-- thread.name , thread.id を追加する -->
+    <captureExperimentalAttributes>true</captureExperimentalAttributes>
+    <!-- https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/attributes.md#source-code-attributes を追加する -->
+    <captureCodeAttributes>true</captureCodeAttributes>
+    <captureMarkerAttribute>true</captureMarkerAttribute>
+    <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
+    <captureLoggerContext>true</captureLoggerContext>
+    <captureMdcAttributes>*</captureMdcAttributes>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="console"/>
+    <appender-ref ref="OpenTelemetry"/>
+  </root>
+
+</configuration>

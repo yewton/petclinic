@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: petclinic-html
+  profiles:
+    default: local
+  r2dbc:
+    url: ${POSTGRES_URL:r2dbc:postgresql://localhost/petclinic}
+    username: ${POSTGRES_USER:petclinic}
+    password: ${POSTGRES_PASS:petclinic}
+  messages:
+    basename: messages/messages
+  reactor:
+    context-propagation: auto
+management:
+  observations:
+    annotations:
+      enabled: true
