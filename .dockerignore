@@ -1,0 +1,6 @@
+.git/
+.gradle/
+references/
+**/build/
+**/.DS_Store
+**/node_modules/

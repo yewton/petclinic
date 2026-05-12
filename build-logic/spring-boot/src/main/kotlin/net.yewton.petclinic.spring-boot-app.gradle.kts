@@ -16,3 +16,10 @@ tasks.processResources {
     )
   }
 }
+
+// https://docs.spring.io/spring-boot/reference/packaging/container-images/efficient-images.html
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>().configureEach {
+  imageName = "net.yewton.petclinic/${project.parent?.name ?: project.name}"
+  environment.put("BP_JVM_VERSION", "21")
+  environment.put("BP_JVM_CDS_ENABLED", "true")
+}

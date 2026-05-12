@@ -1,0 +1,77 @@
+previews:
+  generation: automatic
+  expireAfterDays: 7
+
+databases:
+  - name: petclinic-db
+    databaseName: petclinic
+    user: petclinic
+    plan: free
+    previewPlan: free
+
+services:
+  - type: web
+    name: petclinic-html
+    runtime: docker
+    dockerfilePath: fullstack-html/Dockerfile
+    plan: free
+    autoDeploy: false
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: petclinic-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: petclinic-db
+          property: port
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: petclinic-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: petclinic-db
+          property: user
+      - key: POSTGRES_PASS
+        fromDatabase:
+          name: petclinic-db
+          property: password
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx400m -XX:+UseSerialGC"
+
+  - type: web
+    name: petclinic-htmx
+    runtime: docker
+    dockerfilePath: fullstack-htmx/Dockerfile
+    plan: free
+    autoDeploy: false
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: petclinic-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: petclinic-db
+          property: port
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: petclinic-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: petclinic-db
+          property: user
+      - key: POSTGRES_PASS
+        fromDatabase:
+          name: petclinic-db
+          property: password
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx400m -XX:+UseSerialGC"
