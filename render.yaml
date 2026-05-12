@@ -7,7 +7,6 @@ databases:
     databaseName: petclinic
     user: petclinic
     plan: free
-    previewPlan: free
 
 services:
   - type: web
