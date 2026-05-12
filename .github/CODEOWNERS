@@ -1,0 +1,18 @@
+# Supply-chain–sensitive paths require a review from a code owner.
+# Syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Dependency declarations and version catalog
+/platforms/gradle/libs.versions.toml @yewton
+/gradle/verification-metadata.xml    @yewton
+/gradle/wrapper/                      @yewton
+
+# Build logic (convention plugins executed at build time)
+/build-logic/                         @yewton
+/lint-logic/                          @yewton
+
+# CI / CD pipelines
+/.github/workflows/                   @yewton
+/.github/CODEOWNERS                   @yewton
+
+# Renovate automation
+/renovate.json                        @yewton

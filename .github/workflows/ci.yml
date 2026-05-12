@@ -2,11 +2,15 @@ name: CI
 
 on: [push]
 
+# Deny all permissions by default; grant only what each job needs
+permissions: {}
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       checks: write # https://github.com/mikepenz/action-junit-report/issues/23#issuecomment-1412597753
+      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
