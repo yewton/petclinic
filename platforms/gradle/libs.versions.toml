@@ -1,4 +1,8 @@
 [versions]
+# !!!! バージョンを変更したら必ず実行 !!!!
+# ./gradlew --write-verification-metadata sha256 check --no-configuration-cache
+# → gradle/verification-metadata.xml を再生成してコミット
+#
 # Spring Boot の依存バージョンに合わせる
 # https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
 kotlin = "2.2.21"

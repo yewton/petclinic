@@ -3,6 +3,8 @@
   "extends": [
     "config:best-practices"
   ],
+  "dependencyDashboard": true,
+  "osvVulnerabilityAlerts": true,
   "ignorePaths": [
     "libs/**"
   ],
@@ -13,6 +15,13 @@
         "org.jetbrains.kotlin:{/,}**",
         "org.jooq:{/,}**",
         "io.spring.gradle:dependency-management-plugin"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Gradle verification-metadata.xml はアップデート対象外 (Gradle が自動管理)",
+      "matchFileNames": [
+        "gradle/verification-metadata.xml"
       ],
       "enabled": false
     }
