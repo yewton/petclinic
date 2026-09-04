@@ -6,15 +6,122 @@ from __future__ import annotations
 import argparse
 import sys
 import xml.etree.ElementTree as ET
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
+NAMESPACE = "https://schema.gradle.org/dependency-verification"
+XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 CHECKSUM_TYPES = frozenset({"md5", "sha1", "sha256", "sha512"})
 VERIFICATION_FLAGS = ("verify-metadata", "verify-signatures")
+
+ELEMENT_CHILDREN = {
+    "verification-metadata": frozenset({"configuration", "components"}),
+    "configuration": frozenset(
+        {
+            "verify-metadata",
+            "verify-signatures",
+            "keyring-format",
+            "key-servers",
+            "trusted-artifacts",
+            "ignored-keys",
+            "trusted-keys",
+        }
+    ),
+    "key-servers": frozenset({"key-server"}),
+    "trusted-artifacts": frozenset({"trust"}),
+    "ignored-keys": frozenset({"ignored-key"}),
+    "trusted-keys": frozenset({"trusted-key"}),
+    "trusted-key": frozenset({"trusting"}),
+    "components": frozenset({"component"}),
+    "component": frozenset({"artifact"}),
+    "artifact": frozenset({"ignored-keys", "pgp", *CHECKSUM_TYPES}),
+    **{checksum_type: frozenset({"also-trust"}) for checksum_type in CHECKSUM_TYPES},
+    "verify-metadata": frozenset(),
+    "verify-signatures": frozenset(),
+    "keyring-format": frozenset(),
+    "key-server": frozenset(),
+    "trust": frozenset(),
+    "ignored-key": frozenset(),
+    "trusting": frozenset(),
+    "pgp": frozenset(),
+    "also-trust": frozenset(),
+}
+
+COORDINATE_ATTRIBUTES = frozenset({"group", "name", "version", "regex", "file"})
+ELEMENT_ATTRIBUTES = {
+    "verification-metadata": frozenset({f"{{{XSI_NAMESPACE}}}schemaLocation"}),
+    "configuration": frozenset(),
+    "verify-metadata": frozenset(),
+    "verify-signatures": frozenset(),
+    "keyring-format": frozenset(),
+    "key-servers": frozenset({"enabled"}),
+    "key-server": frozenset({"uri"}),
+    "trusted-artifacts": frozenset(),
+    "trust": COORDINATE_ATTRIBUTES | {"reason"},
+    "ignored-keys": frozenset(),
+    "ignored-key": frozenset({"id", "reason"}),
+    "trusted-keys": frozenset(),
+    "trusted-key": frozenset({"id", "group", "name", "version", "file", "regex"}),
+    "trusting": COORDINATE_ATTRIBUTES,
+    "components": frozenset(),
+    "component": frozenset({"group", "name", "version"}),
+    "artifact": frozenset({"name"}),
+    **{
+        checksum_type: frozenset({"value", "origin", "reason"})
+        for checksum_type in CHECKSUM_TYPES
+    },
+    "pgp": frozenset({"value"}),
+    "also-trust": frozenset({"value"}),
+}
+
+REQUIRED_ATTRIBUTES = {
+    "component": frozenset({"group", "name", "version"}),
+    "artifact": frozenset({"name"}),
+    **{checksum_type: frozenset({"value"}) for checksum_type in CHECKSUM_TYPES},
+    "pgp": frozenset({"value"}),
+    "ignored-key": frozenset({"id"}),
+    "trusted-key": frozenset({"id"}),
+}
+
+EXACT_CHILD_COUNTS = {
+    "verification-metadata": {"configuration": 1, "components": 1},
+    "configuration": {"verify-metadata": 1, "verify-signatures": 1},
+}
+
+AT_MOST_ONE_CHILD = {
+    "configuration": frozenset(
+        {
+            "keyring-format",
+            "key-servers",
+            "trusted-artifacts",
+            "ignored-keys",
+            "trusted-keys",
+        }
+    )
+}
 
 ChecksumKey = tuple[str, str, str, str, str]
 ComponentCoordinate = tuple[str, str, str]
 TrustRule = tuple[tuple[str, str], ...]
+
+
+class MetadataStructureError(ValueError):
+    """検証メタデータが期待する構造に従っていないことを表す。"""
+
+
+def qualified(name: str) -> str:
+    """Gradle dependency verification namespace の修飾名を返す。"""
+
+    return f"{{{NAMESPACE}}}{name}"
+
+
+def split_tag(tag: str) -> tuple[str, str]:
+    """要素名を namespace とローカル名に分ける。"""
+
+    if tag.startswith("{") and "}" in tag:
+        namespace, name = tag[1:].split("}", 1)
+        return namespace, name
+    return "", tag
 
 
 def local_name(tag: str) -> str:
@@ -26,39 +133,116 @@ def local_name(tag: str) -> str:
 def first_child(element: ET.Element, name: str) -> ET.Element | None:
     """直下にある指定名の要素を返す。"""
 
-    return next((child for child in element if local_name(child.tag) == name), None)
+    return next((child for child in element if child.tag == qualified(name)), None)
+
+
+def validate_element(element: ET.Element, path: str) -> None:
+    """要素の namespace、属性、親子関係、主要要素の個数を検証する。"""
+
+    namespace, name = split_tag(element.tag)
+    if namespace != NAMESPACE:
+        actual = namespace or "namespace なし"
+        raise MetadataStructureError(
+            f"{path}: namespace が不正です: {actual}（期待値: {NAMESPACE}）"
+        )
+    if name not in ELEMENT_CHILDREN:
+        raise MetadataStructureError(f"{path}: 期待しない要素 <{name}> です")
+
+    allowed_attributes = ELEMENT_ATTRIBUTES[name]
+    for attribute in element.attrib:
+        if attribute not in allowed_attributes:
+            raise MetadataStructureError(
+                f"{path}: <{name}> に期待しない属性 {attribute!r} があります"
+            )
+    for attribute in REQUIRED_ATTRIBUTES.get(name, frozenset()):
+        if not element.get(attribute):
+            raise MetadataStructureError(
+                f"{path}: <{name}> に必須属性 {attribute!r} がありません"
+            )
+
+    child_counts: Counter[str] = Counter()
+    for child in element:
+        child_namespace, child_name = split_tag(child.tag)
+        child_path = f"{path}/{child_name}"
+        if child_namespace != NAMESPACE:
+            actual = child_namespace or "namespace なし"
+            raise MetadataStructureError(
+                f"{child_path}: namespace が不正です: {actual}（期待値: {NAMESPACE}）"
+            )
+        if child_name not in ELEMENT_CHILDREN[name]:
+            raise MetadataStructureError(
+                f"{path}: <{name}> 直下に期待しない要素 <{child_name}> があります"
+            )
+        child_counts[child_name] += 1
+
+    for child_name, expected_count in EXACT_CHILD_COUNTS.get(name, {}).items():
+        actual_count = child_counts[child_name]
+        if actual_count != expected_count:
+            raise MetadataStructureError(
+                f"{path}: <{child_name}> は {expected_count} 個必要ですが、"
+                f"{actual_count} 個あります"
+            )
+    for child_name in AT_MOST_ONE_CHILD.get(name, frozenset()):
+        actual_count = child_counts[child_name]
+        if actual_count > 1:
+            raise MetadataStructureError(
+                f"{path}: <{child_name}> は最大 1 個ですが、{actual_count} 個あります"
+            )
+
+    for child in element:
+        child_name = local_name(child.tag)
+        validate_element(child, f"{path}/{child_name}")
+
+
+def validate_structure(root: ET.Element) -> None:
+    """Gradle dependency verification metadata の構造全体を検証する。"""
+
+    namespace, name = split_tag(root.tag)
+    if name != "verification-metadata":
+        raise MetadataStructureError(
+            f"root 要素が不正です: <{name}>（期待値: <verification-metadata>）"
+        )
+    if namespace != NAMESPACE:
+        actual = namespace or "namespace なし"
+        raise MetadataStructureError(
+            f"root の namespace が不正です: {actual}（期待値: {NAMESPACE}）"
+        )
+    validate_element(root, "/verification-metadata")
 
 
 def parse_metadata(path: Path) -> ET.Element:
     """検証メタデータを読み込み、ルート要素を返す。"""
 
     try:
-        return ET.parse(path).getroot()
+        root = ET.parse(path).getroot()
     except (OSError, ET.ParseError) as error:
         raise ValueError(f"{path} を読み込めません: {error}") from error
+    try:
+        validate_structure(root)
+    except MetadataStructureError as error:
+        raise MetadataStructureError(f"{path}: {error}") from error
+    return root
 
 
 def checksum_table(root: ET.Element) -> dict[ChecksumKey, frozenset[str]]:
     """成果物ごとに受け入れ可能な checksum の集合を収集する。"""
 
     checksums: defaultdict[ChecksumKey, set[str]] = defaultdict(set)
-    for component in root.iter():
-        if local_name(component.tag) != "component":
-            continue
+    components = first_child(root, "components")
+    assert components is not None
+    for component in components:
         coordinates = (
-            component.get("group", ""),
-            component.get("name", ""),
-            component.get("version", ""),
+            component.attrib["group"],
+            component.attrib["name"],
+            component.attrib["version"],
         )
         for artifact in component:
-            if local_name(artifact.tag) != "artifact":
-                continue
-            artifact_name = artifact.get("name", "")
+            artifact_name = artifact.attrib["name"]
             for checksum in artifact:
                 checksum_type = local_name(checksum.tag)
-                if checksum_type in CHECKSUM_TYPES and checksum.get("value"):
+                if checksum_type in CHECKSUM_TYPES:
                     key = (*coordinates, artifact_name, checksum_type)
-                    checksums[key].add(checksum.get("value", ""))
+                    checksums[key].add(checksum.attrib["value"])
                     checksums[key].update(
                         additional.get("value", "")
                         for additional in checksum
@@ -71,14 +255,15 @@ def checksum_table(root: ET.Element) -> dict[ChecksumKey, frozenset[str]]:
 def component_coordinates(root: ET.Element) -> frozenset[ComponentCoordinate]:
     """記録されているコンポーネント座標を収集する。"""
 
+    components = first_child(root, "components")
+    assert components is not None
     return frozenset(
         (
-            component.get("group", ""),
-            component.get("name", ""),
-            component.get("version", ""),
+            component.attrib["group"],
+            component.attrib["name"],
+            component.attrib["version"],
         )
-        for component in root.iter()
-        if local_name(component.tag) == "component"
+        for component in components
     )
 
 
@@ -205,6 +390,13 @@ def main() -> int:
     try:
         before = parse_metadata(args.before)
         after = parse_metadata(args.after)
+    except MetadataStructureError as error:
+        print(
+            "dependency verification metadata の安全性検査に失敗しました:",
+            file=sys.stderr,
+        )
+        print(f"構造が不正です: {error}", file=sys.stderr)
+        return 1
     except ValueError as error:
         print(f"エラー: {error}", file=sys.stderr)
         return 2

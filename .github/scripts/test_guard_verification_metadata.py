@@ -10,6 +10,8 @@ import unittest
 from pathlib import Path
 
 SCRIPT = Path(__file__).with_name("guard_verification_metadata.py")
+REPOSITORY_METADATA = SCRIPT.parents[2] / "gradle" / "verification-metadata.xml"
+NAMESPACE = "https://schema.gradle.org/dependency-verification"
 
 
 def metadata(
@@ -22,7 +24,7 @@ def metadata(
     """テスト用の最小限の検証メタデータを組み立てる。"""
 
     return f"""<?xml version="1.0" encoding="UTF-8"?>
-<verification-metadata>
+<verification-metadata xmlns="{NAMESPACE}">
   <configuration>
     <verify-metadata>{verify_metadata}</verify-metadata>
     <verify-signatures>{verify_signatures}</verify-signatures>
@@ -63,10 +65,27 @@ class GuardVerificationMetadataTest(unittest.TestCase):
                 text=True,
             )
 
+    def run_guard_paths(
+        self, before: Path, after: Path
+    ) -> subprocess.CompletedProcess[str]:
+        """実ファイルを入力してスクリプトを実行する。"""
+
+        return subprocess.run(
+            [sys.executable, str(SCRIPT), str(before), str(after)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
     def test_unchanged_metadata_passes(self) -> None:
         xml = metadata(component("1.0", "original"))
 
         result = self.run_guard(xml, xml)
+
+        self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_repository_metadata_passes(self) -> None:
+        result = self.run_guard_paths(REPOSITORY_METADATA, REPOSITORY_METADATA)
 
         self.assertEqual(0, result.returncode, result.stderr)
 
@@ -101,6 +120,127 @@ class GuardVerificationMetadataTest(unittest.TestCase):
         self.assertEqual(1, result.returncode)
         self.assertIn("example:library:1.0", result.stderr)
         self.assertIn("example:other:2.0", result.stderr)
+
+    def test_dummy_component_in_trusted_artifacts_cannot_bypass_removal(self) -> None:
+        before = metadata(component("1.0", "original"))
+        after = metadata(
+            "",
+            trust_rules=(
+                '<trust file=".*-sources[.]jar" regex="true"/>'
+                '<component group="example" name="library" version="dummy"/>'
+            ),
+        )
+
+        result = self.run_guard(before, after)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("構造が不正です", result.stderr)
+        self.assertIn(
+            "<trusted-artifacts> 直下に期待しない要素 <component>", result.stderr
+        )
+
+    def test_wrong_root_element_fails(self) -> None:
+        before = metadata(component("1.0", "original"))
+        after = before.replace("verification-metadata", "unexpected-root")
+
+        result = self.run_guard(before, after)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("root 要素が不正です", result.stderr)
+
+    def test_wrong_namespace_fails(self) -> None:
+        before = metadata(component("1.0", "original"))
+        after = before.replace(NAMESPACE, "https://example.invalid/wrong-namespace")
+
+        result = self.run_guard(before, after)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("root の namespace が不正です", result.stderr)
+
+    def test_wrong_nested_namespace_fails(self) -> None:
+        before = metadata(component("1.0", "original"))
+        after = before.replace("<components>", '<components xmlns="">')
+
+        result = self.run_guard(before, after)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("namespace が不正です: namespace なし", result.stderr)
+
+    def test_root_requires_single_configuration_and_components(self) -> None:
+        before = metadata(component("1.0", "original"))
+        cases = {
+            "configuration": before.replace(
+                "</configuration>", "</configuration><configuration/>"
+            ),
+            "components": before.replace("</components>", "</components><components/>"),
+        }
+
+        for element, after in cases.items():
+            with self.subTest(element=element):
+                result = self.run_guard(before, after)
+
+                self.assertEqual(1, result.returncode)
+                self.assertIn(f"<{element}> は 1 個必要", result.stderr)
+
+    def test_component_without_version_fails(self) -> None:
+        before = metadata(component("1.0", "original"))
+        after = before.replace(
+            '<component group="example" name="library" version="1.0">',
+            '<component group="example" name="library">',
+        )
+
+        result = self.run_guard(before, after)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("必須属性 'version' がありません", result.stderr)
+
+    def test_component_outside_components_fails(self) -> None:
+        before = metadata(component("1.0", "original"))
+        misplaced = component("dummy", "dummy")
+        after = metadata("").replace("<components>", f"{misplaced}<components>")
+
+        result = self.run_guard(before, after)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn(
+            "<verification-metadata> 直下に期待しない要素 <component>",
+            result.stderr,
+        )
+
+    def test_unexpected_elements_at_each_metadata_level_fail(self) -> None:
+        before = metadata(component("1.0", "original"))
+        cases = {
+            "root": before.replace(
+                "</verification-metadata>", "<unexpected/></verification-metadata>"
+            ),
+            "configuration": before.replace(
+                "<configuration>", "<configuration><unexpected/>"
+            ),
+            "trusted-artifacts": before.replace(
+                "<trusted-artifacts>", "<trusted-artifacts><unexpected/>"
+            ),
+            "components": before.replace("<components>", "<components><unexpected/>"),
+            "component": before.replace(
+                '<component group="example" name="library" version="1.0">',
+                '<component group="example" name="library" version="1.0">'
+                "<unexpected/>",
+            ),
+            "artifact": before.replace(
+                '<artifact name="library-1.0.jar">',
+                '<artifact name="library-1.0.jar"><unexpected/>',
+            ),
+            "checksum": before.replace(
+                '<sha256 value="original"/>',
+                '<sha256 value="original"><unexpected/></sha256>',
+            ),
+        }
+
+        for level, after in cases.items():
+            with self.subTest(level=level):
+                result = self.run_guard(before, after)
+
+                self.assertEqual(1, result.returncode)
+                self.assertIn("期待しない要素 <unexpected>", result.stderr)
 
     def test_removing_checksum_from_retained_component_fails(self) -> None:
         before = metadata(component("1.0", "original"))
