@@ -25,6 +25,7 @@ This project applies the following measures to reduce supply chain risk:
 | Pinned Gradle wrapper | `validateDistributionUrl=true` in `gradle/wrapper/gradle-wrapper.properties` |
 | Gradle wrapper validation in CI | `gradle/actions/wrapper-validation` step |
 | GitHub Actions pinned to commit SHA | Enforced by the repository's SHA pinning requirement; Renovate keeps the digests current |
+| GitHub Actions restricted to an allow list | GitHub-owned actions, plus `gradle/*` and `mikepenz/action-junit-report@*` |
 | Minimal CI token permissions | `permissions: {}` at workflow level; jobs grant only what they need |
 | Automated dependency updates | Renovate bot with `config:best-practices` preset |
 | Vulnerability alerting | Renovate OSV alerts, and GitHub Dependabot alerts fed by the `dependency-submission` job in CI |
