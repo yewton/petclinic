@@ -70,13 +70,46 @@ class GuardVerificationMetadataTest(unittest.TestCase):
 
         self.assertEqual(0, result.returncode, result.stderr)
 
-    def test_added_and_removed_entries_pass(self) -> None:
-        before = metadata(component("1.0", "original") + component("2.0", "removed"))
-        after = metadata(component("1.0", "original") + component("3.0", "added"))
+    def test_removing_version_with_replacement_version_passes(self) -> None:
+        before = metadata(component("1.0", "original"))
+        after = metadata(component("2.0", "added"))
 
         result = self.run_guard(before, after)
 
         self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_removing_entire_module_fails(self) -> None:
+        before = metadata(component("1.0", "original"))
+        after = metadata("")
+
+        result = self.run_guard(before, after)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("依存モジュールが完全に削除されました", result.stderr)
+        self.assertIn("example:library:1.0", result.stderr)
+        self.assertIn("手元でメタデータを再生成", result.stderr)
+
+    def test_removing_all_components_fails(self) -> None:
+        before = metadata(
+            component("1.0", "first")
+            + component("2.0", "second").replace('name="library"', 'name="other"')
+        )
+        after = metadata("")
+
+        result = self.run_guard(before, after)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("example:library:1.0", result.stderr)
+        self.assertIn("example:other:2.0", result.stderr)
+
+    def test_removing_checksum_from_retained_component_fails(self) -> None:
+        before = metadata(component("1.0", "original"))
+        after = before.replace('<sha256 value="original"/>', "")
+
+        result = self.run_guard(before, after)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("既存 checksum エントリが削除されました", result.stderr)
 
     def test_changed_existing_checksum_fails(self) -> None:
         before = metadata(component("1.0", "original"))

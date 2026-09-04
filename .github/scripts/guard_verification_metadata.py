@@ -13,6 +13,7 @@ CHECKSUM_TYPES = frozenset({"md5", "sha1", "sha256", "sha512"})
 VERIFICATION_FLAGS = ("verify-metadata", "verify-signatures")
 
 ChecksumKey = tuple[str, str, str, str, str]
+ComponentCoordinate = tuple[str, str, str]
 TrustRule = tuple[tuple[str, str], ...]
 
 
@@ -67,6 +68,20 @@ def checksum_table(root: ET.Element) -> dict[ChecksumKey, frozenset[str]]:
     return {key: frozenset(values) for key, values in checksums.items()}
 
 
+def component_coordinates(root: ET.Element) -> frozenset[ComponentCoordinate]:
+    """記録されているコンポーネント座標を収集する。"""
+
+    return frozenset(
+        (
+            component.get("group", ""),
+            component.get("name", ""),
+            component.get("version", ""),
+        )
+        for component in root.iter()
+        if local_name(component.tag) == "component"
+    )
+
+
 def configuration(root: ET.Element) -> ET.Element | None:
     """configuration 要素を返す。"""
 
@@ -104,6 +119,12 @@ def format_checksum_key(key: ChecksumKey) -> str:
     return f"{group}:{name}:{version} / {artifact} [{checksum_type}]"
 
 
+def format_component(component: ComponentCoordinate) -> str:
+    """コンポーネント座標を診断用に整形する。"""
+
+    return ":".join(component)
+
+
 def format_trust_rule(rule: TrustRule) -> str:
     """trust ルールを診断用に整形する。"""
 
@@ -111,7 +132,7 @@ def format_trust_rule(rule: TrustRule) -> str:
 
 
 def detect_violations(before: ET.Element, after: ET.Element) -> list[str]:
-    """既存 checksum の変化と検証設定の弱体化を検出する。"""
+    """既存 checksum の変化、不審な削除、検証設定の弱体化を検出する。"""
 
     violations: list[str] = []
     before_checksums = checksum_table(before)
@@ -125,6 +146,26 @@ def detect_violations(before: ET.Element, after: ET.Element) -> list[str]:
                     f"  変更前: {', '.join(sorted(before_checksums[key]))}",
                     f"  変更後: {', '.join(sorted(after_checksums[key]))}",
                 )
+            )
+
+    before_components = component_coordinates(before)
+    after_components = component_coordinates(after)
+    removed_components = before_components - after_components
+    after_modules = {(group, name) for group, name, _version in after_components}
+    for component in sorted(removed_components):
+        group, name, _version = component
+        if (group, name) not in after_modules:
+            violations.append(
+                f"依存モジュールが完全に削除されました: {format_component(component)}。"
+                "意図した依存削除であれば、手元でメタデータを再生成し、"
+                "内容を確認してコミットしてください"
+            )
+
+    for key in sorted(before_checksums.keys() - after_checksums.keys()):
+        component = key[:3]
+        if component in after_components:
+            violations.append(
+                f"既存 checksum エントリが削除されました: {format_checksum_key(key)}"
             )
 
     before_config = configuration(before)
