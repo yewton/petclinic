@@ -5,6 +5,9 @@
   ],
   "dependencyDashboard": true,
   "osvVulnerabilityAlerts": true,
+  "gitIgnoredAuthors": [
+    "41898282+github-actions[bot]@users.noreply.github.com"
+  ],
   "ignorePaths": [
     "libs/**"
   ],
@@ -19,11 +22,14 @@
       "enabled": false
     },
     {
-      "description": "Gradle verification-metadata.xml はアップデート対象外 (Gradle が自動管理)",
-      "matchFileNames": [
-        "gradle/verification-metadata.xml"
+      "description": "Patch、minor、GitHub Actions digest 更新は自動マージする。リポジトリで GitHub の auto-merge が無効なため、プラットフォーム側ではなく Renovate 自身にマージさせる",
+      "matchUpdateTypes": [
+        "patch",
+        "minor",
+        "digest"
       ],
-      "enabled": false
+      "automerge": true,
+      "platformAutomerge": false
     }
   ]
 }

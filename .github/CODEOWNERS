@@ -1,4 +1,6 @@
-# Supply-chain–sensitive paths require a review from a code owner.
+# Supply-chain–sensitive paths. Code owners are requested for review automatically
+# when a pull request touches these paths. Review is not enforced as a merge
+# requirement, because this repository has no branch protection rule on main.
 # Syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Dependency declarations and version catalog
@@ -12,6 +14,7 @@
 
 # CI / CD pipelines
 /.github/workflows/                   @yewton
+/.github/scripts/                     @yewton
 /.github/CODEOWNERS                   @yewton
 
 # Renovate automation

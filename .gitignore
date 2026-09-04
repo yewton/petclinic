@@ -170,3 +170,7 @@ gradle-app.setting
 .classpath
 
 
+
+### Python (dependency verification guard scripts) ###
+__pycache__/
+*.py[cod]

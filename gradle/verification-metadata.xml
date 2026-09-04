@@ -3,25 +3,8 @@
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <!--
-         IntelliJ IDEA は Gradle プロジェクトのインポート時にソースアーカイブを取得する。
-         IDEA-258328 の影響により、通常のビルドタスクで生成した検証メタデータに checksum がない場合、
-         この取得処理は strict dependency verification によって失敗する。
-
-         ソース専用アーカイブはコンパイル時や実行時の入力ではなく、遅延取得される全ソースの checksum を
-         記録すると依存関係の変更ごとに検証メタデータの更新が繰り返し必要になるため、ここで信頼する。
-         ソースの検索だけに使われるものを含め、POM、Gradle Module Metadata、バイナリ JAR は
-         引き続き checksum で検証する。
-
-         各 trust ルールはソースのファイル名パターンに限定し、可能な場合はコンポーネント座標も指定する。
-         一致する成果物をビルド入力として使うようになった場合は、該当する trust ルールを削除し、
-         代わりに checksum を記録する。
-
-         References:
-         https://youtrack.jetbrains.com/issue/IDEA-258328
-         https://docs.gradle.org/current/userguide/dependency_verification.html#sec:ignoring-javadocs-and-sources
-      -->
       <trusted-artifacts>
+         <trust file=".*-javadoc[.]jar" regex="true" reason="IDE が取得する Javadoc アーカイブであり、ビルド入力には使用しないため"/>
          <trust file=".*-sources[.]jar" regex="true" reason="IDE が取得するソースアーカイブであり、ビルド入力には使用しないため"/>
          <trust group="gradle" name="gradle" file="gradle-[0-9.]+-src[.]zip" regex="true" reason="IDE が取得する Gradle ディストリビューションのソースであり、ビルド入力には使用しないため"/>
       </trusted-artifacts>
