@@ -1,9 +1,10 @@
-# Supply-chain–sensitive paths require a review from a code owner.
+# Supply-chain–sensitive paths. Code owners are requested for review
+# automatically when a pull request touches these paths. Review is not enforced
+# as a merge requirement, because main has no branch protection rule.
 # Syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Dependency declarations and version catalog
 /platforms/gradle/libs.versions.toml @yewton
-/gradle/verification-metadata.xml    @yewton
 /gradle/wrapper/                      @yewton
 
 # Build logic (convention plugins executed at build time)
