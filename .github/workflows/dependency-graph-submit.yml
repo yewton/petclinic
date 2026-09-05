@@ -1,0 +1,41 @@
+name: Submit dependency graph
+
+# Submits the dependency graph snapshot that the CI workflow uploaded, so that
+# GitHub's Dependabot alerts cover this project.
+#
+# This runs as a separate workflow so that the write token stays out of the job
+# that resolves the graph. Resolving it executes the project's build scripts and
+# Gradle plugins; a compromised plugin in that job would otherwise be able to
+# read the token and write to the repository. This job runs no build code — it
+# downloads an artifact and calls the Dependency Submission API.
+on:
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  submit:
+    # The snapshot is only consulted for the default branch, and a failed CI run
+    # may have produced no artifact at all.
+    #
+    # The event and repository checks are redundant while CI is `on: [push]`,
+    # because a fork's push does not start a run here. They keep this job from
+    # trusting a fork if a `pull_request` trigger is ever added to CI: a fork's
+    # source branch can also be named main.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # read the artifact from the triggering workflow run
+      contents: write # submit the snapshot via the Dependency Submission API
+    steps:
+      - name: Download and submit dependency graph
+        uses: gradle/actions/dependency-submission@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
+        with:
+          dependency-graph: download-and-submit
+          cache-disabled: true
