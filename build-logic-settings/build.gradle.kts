@@ -1,6 +1,17 @@
 plugins {
   `kotlin-dsl`
-  id("com.diffplug.spotless") version "8.4.0"
+  alias(libs.plugins.spotless)
+}
+
+spotless {
+  kotlinGradle {
+    target(
+      "build.gradle.kts",
+      "settings.gradle.kts",
+      "src/main/kotlin/**/*.gradle.kts",
+    )
+    ktlint().setEditorConfigPath(file("../.editorconfig"))
+  }
 }
 
 dependencies {

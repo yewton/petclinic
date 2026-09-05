@@ -4,5 +4,5 @@ plugins {
 
 dependencies {
   implementation(platform("net.yewton.petclinic.platform:plugins-platform"))
-  implementation("com.diffplug.spotless:spotless-plugin-gradle:8.4.0")
+  implementation(libs.spotless.plugin.gradle)
 }
