@@ -10,6 +10,7 @@
 
 # Build logic (convention plugins executed at build time)
 /build-logic/                         @yewton
+/build-logic-settings/                @yewton
 /lint-logic/                          @yewton
 
 # CI / CD pipelines

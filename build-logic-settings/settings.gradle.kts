@@ -8,7 +8,5 @@ dependencyResolutionManagement {
     }
   }
 }
-includeBuild("../platforms")
 
-rootProject.name = "lint-logic"
-include("spotless")
+rootProject.name = "build-logic-settings"
