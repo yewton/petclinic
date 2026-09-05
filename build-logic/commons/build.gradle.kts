@@ -6,5 +6,6 @@ plugins {
 dependencies {
   implementation(platform("net.yewton.petclinic.platform:plugins-platform"))
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
+  // The marker maps the plugin ID to its implementation on the precompiled settings script's classpath.
   implementation("org.gradle.toolchains.foojay-resolver-convention:org.gradle.toolchains.foojay-resolver-convention.gradle.plugin")
 }
