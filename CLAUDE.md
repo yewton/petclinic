@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build & verify**: `./gradlew check` — must pass before committing
 - **Format**: `./gradlew spotlessApply` — enforces ktlint via Spotless
 - **JOOQ codegen**: `./gradlew :core:lib:jooqCodegen` — regenerate after schema changes
-- **依存関係検証メタデータ更新**: `./gradlew --write-verification-metadata sha256 check --no-configuration-cache` — **依存関係バージョンを変更したら必ず実行**して `gradle/verification-metadata.xml` を再生成しコミットする（`check` 以外のタスクでは全依存関係が解決されず CI が失敗する）
+- **依存関係検証メタデータ更新**: `./gradlew --dependency-verification lenient -q --write-verification-metadata sha256 check --no-configuration-cache` — **手でバージョンを変更したら実行**して `gradle/verification-metadata.xml` を再生成しコミットする。Renovate 経由の更新では Renovate が `dependencies` タスクで同じことを行い同じ PR に含めるため、通常は手を動かす必要はない。例外は Spotless の更新で ktlint のバージョンが変わったとき。ktlint は Spotless が detached configuration で解決するため `dependencies` では記録されず、CI が検証エラーで落ちる。そのときはこのコマンド（`check` を使う版）で再生成する
 - **Run apps**:
   - プレーンHTML版: `./gradlew :fullstack-html:app:bootRun`
   - HTMX版: `./gradlew :fullstack-htmx:app:bootRun`
