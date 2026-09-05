@@ -24,3 +24,11 @@
 1. 作業前にプロジェクト構造を把握する。不明点や不足機能の確認が必要な場合は、`references/spring-petclinic` を参照実装として確認する。
 2. 実装後、`./gradlew spotlessApply` でコードを整える。
 3. `./gradlew check` で全てのテストとチェックをパスすることを確認する。
+
+## APM によるエージェント設定管理
+
+Claude Code と Codex 向けの共有コンテキストは Microsoft APM で管理する。`.apm/` がスキル・コマンド・フックの正本であり、`.claude/`、`.codex/`、`.agents/skills/` は `apm install` の生成物である。
+
+- エージェント設定を変更するときは `.apm/` を編集する。生成物を直接変更してはならない。
+- 変更後は `apm install --force --target claude,codex,agent-skills` を実行して反映し、`apm audit` で整合性を確認する。
+- `apm_modules/` はローカルキャッシュのためコミットしない。`apm.yml` と `apm.lock.yaml` はコミット対象である。

@@ -1,0 +1,15 @@
+name: petclinic
+version: 1.0.0
+description: Shared AI-agent context for PetClinic development
+author: yewton
+targets:
+  - claude
+  - codex
+dependencies:
+  # APM requires at least one local package dependency to activate deployment
+  # of the project's .apm/ primitives.
+  apm:
+    - ./.apm/skills/spring-boot-upgrade
+  mcp: []
+includes: auto
+scripts: {}

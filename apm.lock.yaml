@@ -1,0 +1,117 @@
+lockfile_version: '1'
+generated_at: '2026-09-05T09:22:55.819859+00:00'
+apm_version: 0.29.0
+dependencies:
+- repo_url: _local/spring-boot-upgrade
+  name: spring-boot-upgrade
+  version: unknown
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/spring-boot-upgrade
+  - .agents/skills/spring-boot-upgrade/SKILL.md
+  - .agents/skills/spring-boot-upgrade/scripts/session-start.sh
+  - .claude/skills/spring-boot-upgrade
+  - .claude/skills/spring-boot-upgrade/SKILL.md
+  - .claude/skills/spring-boot-upgrade/scripts/session-start.sh
+  deployed_file_hashes:
+    .agents/skills/spring-boot-upgrade/SKILL.md: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
+    .agents/skills/spring-boot-upgrade/scripts/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
+    .claude/skills/spring-boot-upgrade/SKILL.md: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
+    .claude/skills/spring-boot-upgrade/scripts/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
+  source: local
+  local_path: ./.apm/skills/spring-boot-upgrade
+deployments:
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/spring-boot-upgrade
+  runtime: null
+  scope: project
+  owners:
+  - ./.apm/skills/spring-boot-upgrade
+  - .
+  active_owner: ./.apm/skills/spring-boot-upgrade
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/spring-boot-upgrade/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./.apm/skills/spring-boot-upgrade
+  - .
+  active_owner: ./.apm/skills/spring-boot-upgrade
+  content_hash: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/spring-boot-upgrade/scripts/session-start.sh
+  runtime: null
+  scope: project
+  owners:
+  - ./.apm/skills/spring-boot-upgrade
+  - .
+  active_owner: ./.apm/skills/spring-boot-upgrade
+  content_hash: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
+- kind: project-relative
+  target: claude
+  value: .claude/hooks/petclinic/session-start.sh
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
+- kind: project-relative
+  target: claude
+  value: .claude/skills/spring-boot-upgrade
+  runtime: null
+  scope: project
+  owners:
+  - ./.apm/skills/spring-boot-upgrade
+  - .
+  active_owner: ./.apm/skills/spring-boot-upgrade
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/spring-boot-upgrade/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./.apm/skills/spring-boot-upgrade
+  - .
+  active_owner: ./.apm/skills/spring-boot-upgrade
+  content_hash: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
+- kind: project-relative
+  target: claude
+  value: .claude/skills/spring-boot-upgrade/scripts/session-start.sh
+  runtime: null
+  scope: project
+  owners:
+  - ./.apm/skills/spring-boot-upgrade
+  - .
+  active_owner: ./.apm/skills/spring-boot-upgrade
+  content_hash: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
+- kind: project-relative
+  target: codex
+  value: .codex/hooks/petclinic/session-start.sh
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
+local_deployed_files:
+- .agents/skills/spring-boot-upgrade
+- .agents/skills/spring-boot-upgrade/SKILL.md
+- .agents/skills/spring-boot-upgrade/scripts/session-start.sh
+- .claude/hooks/petclinic/session-start.sh
+- .claude/skills/spring-boot-upgrade
+- .claude/skills/spring-boot-upgrade/SKILL.md
+- .claude/skills/spring-boot-upgrade/scripts/session-start.sh
+- .codex/hooks/petclinic/session-start.sh
+local_deployed_file_hashes:
+  .agents/skills/spring-boot-upgrade/SKILL.md: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
+  .agents/skills/spring-boot-upgrade/scripts/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
+  .claude/hooks/petclinic/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
+  .claude/skills/spring-boot-upgrade/SKILL.md: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
+  .claude/skills/spring-boot-upgrade/scripts/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
+  .codex/hooks/petclinic/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4

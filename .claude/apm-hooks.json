@@ -1,0 +1,14 @@
+{
+  "SessionStart": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/petclinic/session-start.sh\""
+        }
+      ],
+      "_apm_source": "_local/petclinic"
+    }
+  ]
+}

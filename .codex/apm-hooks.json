@@ -1,0 +1,13 @@
+{
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .codex/hooks/petclinic/session-start.sh"
+        }
+      ],
+      "_apm_source": "_local/petclinic"
+    }
+  ]
+}
