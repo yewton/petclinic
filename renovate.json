@@ -19,11 +19,33 @@
       "enabled": false
     },
     {
-      "description": "Gradle verification-metadata.xml はアップデート対象外 (Gradle が自動管理)",
-      "matchFileNames": [
-        "gradle/verification-metadata.xml"
+      "description": "Patch と minor は自動マージする。リポジトリで GitHub の auto-merge が無効なため、プラットフォーム側ではなく Renovate 自身にマージさせる",
+      "matchUpdateTypes": [
+        "patch",
+        "minor"
       ],
-      "enabled": false
+      "automerge": true,
+      "platformAutomerge": false
+    },
+    {
+      "description": "GitHub Actions の digest 更新は自動マージする。Docker digest はレビューを挟むため対象外",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "automerge": true,
+      "platformAutomerge": false
+    },
+    {
+      "description": "patch、minor、digest の更新は、Renovate が取得できるリリース時刻を基準に原則3日待機する。security update は待機を迂回し、GitHub Actions の digest 更新は digest の変更時刻ではなく対応するバージョンの commit timestamp を基準にする",
+      "matchUpdateTypes": [
+        "patch",
+        "minor",
+        "digest"
+      ],
+      "minimumReleaseAge": "3 days"
     }
   ]
 }

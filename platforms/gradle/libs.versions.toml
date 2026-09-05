@@ -1,7 +1,6 @@
 [versions]
-# !!!! バージョンを変更したら必ず実行 !!!!
-# ./gradlew --write-verification-metadata sha256 check --no-configuration-cache
-# → gradle/verification-metadata.xml を再生成してコミット
+# 手でバージョンを変更したら gradle/verification-metadata.xml の再生成が必要。
+# コマンドは CLAUDE.md を参照。Renovate 経由の更新では Renovate が自分で再生成する。
 #
 # Spring Boot の依存バージョンに合わせる
 # https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
@@ -27,6 +26,5 @@ jooq-codegen-gradle = { module = "org.jooq:jooq-codegen-gradle", version.ref = "
 jooq-postgres-extensions = { module = "org.jooq:jooq-postgres-extensions", version.ref = "jooq" }
 jooq-kotlin-coroutines = { module = "org.jooq:jooq-kotlin-coroutines", version.ref = "jooq" }
 spotless-plugin-gradle = "com.diffplug.spotless:spotless-plugin-gradle:8.4.0"
-foojay-resolver-convention-plugin = "org.gradle.toolchains.foojay-resolver-convention:org.gradle.toolchains.foojay-resolver-convention.gradle.plugin:1.0.0"
 opentelemetry-logback-appender = { module = "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0", version.ref = "opentelemetry" }
 opentelemetry-logback-mdc = { module = "io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0", version.ref = "opentelemetry" }
