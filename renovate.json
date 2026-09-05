@@ -39,7 +39,7 @@
       "platformAutomerge": false
     },
     {
-      "description": "自動マージ対象の更新は公開直後を避ける。悪意あるリリースが公開されてから advisory 化・取り下げされるまでの猶予を確保するため",
+      "description": "patch、minor、digest の更新は公開直後を避ける。悪意あるリリースが公開されてから advisory 化・取り下げされるまでの猶予を確保するため。自動マージ対象より広く、Docker digest のように手動マージするものにも待機がかかる",
       "matchUpdateTypes": [
         "patch",
         "minor",
