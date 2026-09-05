@@ -19,14 +19,33 @@
       "enabled": false
     },
     {
-      "description": "Patch、minor、GitHub Actions digest 更新は自動マージする。リポジトリで GitHub の auto-merge が無効なため、プラットフォーム側ではなく Renovate 自身にマージさせる",
+      "description": "Patch と minor は自動マージする。リポジトリで GitHub の auto-merge が無効なため、プラットフォーム側ではなく Renovate 自身にマージさせる",
+      "matchUpdateTypes": [
+        "patch",
+        "minor"
+      ],
+      "automerge": true,
+      "platformAutomerge": false
+    },
+    {
+      "description": "GitHub Actions の digest 更新は自動マージする。Docker digest はレビューを挟むため対象外",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "automerge": true,
+      "platformAutomerge": false
+    },
+    {
+      "description": "自動マージ対象の更新は公開直後を避ける。悪意あるリリースが公開されてから advisory 化・取り下げされるまでの猶予を確保するため",
       "matchUpdateTypes": [
         "patch",
         "minor",
         "digest"
       ],
-      "automerge": true,
-      "platformAutomerge": false
+      "minimumReleaseAge": "3 days"
     }
   ]
 }

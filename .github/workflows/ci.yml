@@ -31,16 +31,22 @@ jobs:
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
 
-  # Submits the resolved dependency graph so that GitHub's Dependabot alerts
-  # cover this project. GitHub cannot derive the graph on its own here: the
-  # versions live in a version catalog that is shared across composite builds.
+  # Resolves the dependency graph so that GitHub's Dependabot alerts can cover
+  # this project. GitHub cannot derive the graph on its own here: the versions
+  # live in a version catalog that is shared across composite builds.
+  #
+  # This job only uploads the snapshot as a workflow artifact. Submitting it
+  # needs a write token, and this job runs the project's build scripts and
+  # Gradle plugins, so the submission happens in dependency-graph-submit.yml
+  # instead, in a job that runs no build code.
+  #
   # Restricted to main because the snapshot is only consulted for the default
-  # branch, and because this job needs a write token to submit it.
-  dependency-submission:
+  # branch.
+  dependency-graph:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -49,5 +55,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - name: Submit dependency graph
+      - name: Generate dependency graph
         uses: gradle/actions/dependency-submission@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
+        with:
+          dependency-graph: generate-and-upload

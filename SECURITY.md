@@ -40,18 +40,30 @@ is recorded here so the decision can be revisited on its merits.
 
 That mechanism detects an artifact being replaced *after* its checksum was
 recorded. Dependencies here come from Maven Central and the Gradle Plugin
-Portal, and neither allows a released version to be replaced, so the registries
-already provide that guarantee.
+Portal, and both forbid replacing a released version, so the common case is
+already covered by the registries' own policy.
 
-What it does not cover is a maintainer's account being compromised and a
-malicious *new* version being published. The checksum recorded when a version is
-first adopted is the checksum of whatever was published, so an automated update
-bot records the malicious artifact as trusted. That risk is addressed by
-vulnerability alerting and by reviewing dependency updates.
+Registry policy and cryptographic verification are not equivalent, so removing
+the metadata does give up real coverage: a compromise of a registry, its CDN or
+its storage, tampering at a TLS-terminating proxy, poisoning of a local or CI
+Gradle cache, and any bug or policy violation in the registries' immutability
+guarantees. What remains is the transport security of the download itself.
 
-Keeping the metadata current also required regenerating and committing it on
-every dependency update. That broke automated updates and IntelliJ IDEA's
-project import ([IDEA-258328](https://youtrack.jetbrains.com/issue/IDEA-258328)),
-and automating the regeneration meant maintaining a custom validator that the
-privileged CI job had to trust. The upkeep was not matched by the residual
-protection.
+What the mechanism never covered is a maintainer's account being compromised and
+a malicious *new* version being published, because the recorded checksum is the
+checksum of whatever was published. Under manual upkeep the metadata commit was
+at least a place where a human could look; had the regeneration been automated,
+even that would have gone. Vulnerability alerting does not close this gap
+either: it reports versions that are *already known* to be vulnerable or
+malicious, so it helps after a problem is identified rather than before a
+version is merged. As a partial mitigation, Renovate holds automerged updates
+for three days (`minimumReleaseAge`), which gives a malicious release some time
+to be reported or withdrawn before it lands.
+
+Keeping the metadata current required regenerating and committing it on every
+dependency update. That broke automated updates and IntelliJ IDEA's project
+import ([IDEA-258328](https://youtrack.jetbrains.com/issue/IDEA-258328)), and
+automating the regeneration meant maintaining a custom validator that the
+privileged CI job had to trust. For a project of this size the upkeep was not
+matched by the residual protection; a project with a different threat model
+should weigh this differently.
