@@ -4,6 +4,7 @@ pluginManagement {
   }
   includeBuild("../lint-logic")
   includeBuild("../build-logic")
+  includeBuild("../build-logic-settings")
 }
 
 plugins {
