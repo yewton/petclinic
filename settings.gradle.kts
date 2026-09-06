@@ -4,6 +4,7 @@ pluginManagement {
   }
   includeBuild("lint-logic")
   includeBuild("build-logic")
+  includeBuild("build-logic-settings")
 }
 
 plugins {
@@ -13,6 +14,7 @@ plugins {
 includeBuild("lint-logic")
 includeBuild("platforms")
 includeBuild("build-logic")
+includeBuild("build-logic-settings")
 
 includeBuild("core")
 includeBuild("fullstack-html")
