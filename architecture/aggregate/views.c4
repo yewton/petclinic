@@ -1,0 +1,43 @@
+import { core } from 'core'
+import { fullstack-html } from 'fullstack-html'
+import { fullstack-htmx } from 'fullstack-htmx'
+
+views {
+  view system-context {
+    title 'PetClinic aggregate system context'
+    include pet-owner, fullstack-html, fullstack-htmx, postgres, grafana-stack
+    include pet-owner -> fullstack-html
+    include pet-owner -> fullstack-htmx
+    include fullstack-html -> postgres
+    include fullstack-htmx -> postgres
+    include fullstack-html -> grafana-stack
+    include fullstack-htmx -> grafana-stack
+  }
+
+  view composite-build-dependencies {
+    title 'Aggregate composite build dependencies'
+    include fullstack-html, fullstack-htmx, core
+    include fullstack-html -> core
+    include fullstack-htmx -> core
+    exclude fullstack-html -> fullstack-htmx
+  }
+
+  view observability-pipeline {
+    title 'Aggregate observability pipeline'
+    include fullstack-html, fullstack-htmx, grafana-stack
+    include fullstack-html -> grafana-stack
+    include fullstack-htmx -> grafana-stack
+    include grafana-stack.alloy -> grafana-stack.tempo
+    include grafana-stack.alloy -> grafana-stack.loki
+    include grafana-stack.alloy -> grafana-stack.mimir
+    include grafana-stack.grafana -> grafana-stack.tempo
+    include grafana-stack.grafana -> grafana-stack.loki
+    include grafana-stack.grafana -> grafana-stack.mimir
+  }
+
+  view correspondence {
+    title 'Aggregate equivalent PetClinic implementations'
+    include fullstack-html, fullstack-htmx
+    include fullstack-html -> fullstack-htmx
+  }
+}

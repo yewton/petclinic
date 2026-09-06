@@ -1,0 +1,8 @@
+{
+  "name": "petclinic",
+  "private": true,
+  "devDependencies": {
+    "@likec4/mcp": "1.59.3",
+    "likec4": "1.59.3"
+  }
+}

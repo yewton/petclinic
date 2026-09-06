@@ -10,6 +10,7 @@ dependencies:
   # of the project's .apm/ primitives.
   apm:
     - ./.apm/skills/spring-boot-upgrade
+    - ./.apm/skills/architecture-model
   mcp: []
 includes: auto
 scripts: {}

@@ -1,0 +1,20 @@
+import { core } from 'core'
+import { fullstack-html } from 'fullstack-html'
+
+model {
+  fullstack-htmx = system 'PetClinic HTMX' {
+    app = application 'PetClinic HTMX application' {
+      #fullstack-htmx, #parallel-implementation
+      technology 'Spring WebFlux, Thymeleaf, HTMX partial rendering'
+      metadata {
+        implementation-role 'Parallel implementation of the PetClinic feature set with fullstack-html'
+      }
+
+      pet-owner -[http]-> app 'accesses via HTTP'
+      app -[dependency]-> core 'uses shared library'
+      app -[otlp]-> grafana-stack.alloy 'exports traces, logs, and metrics'
+    }
+  }
+
+  fullstack-html.app -[correspondence]-> fullstack-htmx.app 'equivalent feature set; no build or runtime dependency'
+}

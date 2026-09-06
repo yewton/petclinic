@@ -1,0 +1,29 @@
+import { core } from 'core'
+
+views {
+  view system-context {
+    title 'PetClinic HTML system context'
+    include pet-owner, fullstack-html.app, core, grafana-stack
+    include pet-owner -> fullstack-html.app
+    include fullstack-html.app -> core
+    include fullstack-html.app -> grafana-stack
+  }
+
+  view composite-build-dependencies {
+    title 'HTML composite build dependency'
+    include fullstack-html.app, core
+    include fullstack-html.app -> core
+  }
+
+  view observability-pipeline {
+    title 'HTML observability pipeline'
+    include fullstack-html.app, grafana-stack
+    include fullstack-html.app -> grafana-stack
+    include grafana-stack.alloy -> grafana-stack.tempo
+    include grafana-stack.alloy -> grafana-stack.loki
+    include grafana-stack.alloy -> grafana-stack.mimir
+    include grafana-stack.grafana -> grafana-stack.tempo
+    include grafana-stack.grafana -> grafana-stack.loki
+    include grafana-stack.grafana -> grafana-stack.mimir
+  }
+}

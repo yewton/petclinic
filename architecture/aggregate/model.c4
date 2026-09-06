@@ -1,0 +1,17 @@
+import { core } from 'core'
+import { fullstack-html } from 'fullstack-html'
+import { fullstack-htmx } from 'fullstack-htmx'
+
+model {
+  // These system-level relations are aggregate projections. The project models
+  // retain the app-level relations needed by their local views.
+  fullstack-html -[dependency]-> core 'uses shared library'
+  fullstack-htmx -[dependency]-> core 'uses shared library'
+  fullstack-html -[dependency]-> postgres 'persists through core'
+  fullstack-htmx -[dependency]-> postgres 'persists through core'
+  fullstack-html -[otlp]-> grafana-stack.alloy 'exports traces, logs, and metrics'
+  fullstack-htmx -[otlp]-> grafana-stack.alloy 'exports traces, logs, and metrics'
+  pet-owner -[http]-> fullstack-html 'accesses via HTTP'
+  pet-owner -[http]-> fullstack-htmx 'accesses via HTTP'
+  fullstack-html -[correspondence]-> fullstack-htmx 'equivalent feature set; no build or runtime dependency'
+}

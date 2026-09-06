@@ -1,0 +1,7 @@
+views {
+  view core-domain {
+    title 'Core domain composition'
+    include core.*
+    include core -> postgres
+  }
+}

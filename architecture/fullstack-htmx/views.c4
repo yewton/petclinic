@@ -1,0 +1,24 @@
+import { fullstack-html } from 'fullstack-html'
+import { core } from 'core'
+
+views {
+  view system-context {
+    title 'PetClinic HTMX system context'
+    include pet-owner, fullstack-htmx.app, core, grafana-stack
+    include pet-owner -> fullstack-htmx.app
+    include fullstack-htmx.app -> core
+    include fullstack-htmx.app -> grafana-stack
+  }
+
+  view composite-build-dependencies {
+    title 'HTMX composite build dependency'
+    include fullstack-htmx.app, core
+    include fullstack-htmx.app -> core
+  }
+
+  view correspondence {
+    title 'Equivalent PetClinic implementations'
+    include fullstack-html.app, fullstack-htmx.app
+    include fullstack-html.app -> fullstack-htmx.app
+  }
+}
