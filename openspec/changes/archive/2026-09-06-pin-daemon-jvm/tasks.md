@@ -14,6 +14,7 @@
 - [x] 3.2 CI が従来どおり通り、`actions/setup-java` が用意する Java 21 を daemon が再利用して追加の JDK download が発生しないことを確認する。
 - [x] 3.3 IntelliJ IDEA のインポートが影響を受けないことを確認する。
   - `idea.sh -Didea.config.path=<tmp-config> -Didea.system.path=<tmp-system> -Didea.log.path=<tmp-log> inspect <project> <inspection-profile> <output> -v2` を、ビルド成果物を持たない一時 worktree に対して実行した。隔離した IDEA 設定で project import と inspection report の生成に成功し、IDE ログに Gradle import failure、`ERROR`、`FATAL` はなかった。
+  - この検証は不十分だった。IDEA 設定は隔離したが `GRADLE_USER_HOME` は共有のままで、strict verification は未記録アーティファクトを解決した瞬間にしか失敗しないため、対象が既にキャッシュ済みのマシンでは素通りする。IDE インポートの検証は空の隔離 `GRADLE_USER_HOME`、クリーンなマシン、または CI の fresh checkout で行う必要がある。実際、`build-logic-settings` 導入後の IDE インポートで `org.apache.groovy` の Module Metadata が strict verification に引っかかった。対応方針は `SECURITY.md` に記録する。
 - [x] 3.4 Renovate の実行時間を測り、Gradle 実行の有無と、Gradle が必要な場合の daemon JVM / project toolchain の取得経路を確認する。
   - Renovate 44.65.5 を `--platform=local --dry-run=lookup` で read-only の一時 worktree に実行した。25.402 秒で完了し、Gradle manager は 36 ファイル・18 dependencies を抽出した。Renovate process は Gradle を起動しないため JDK provisioning は発生せず、更新 PR の CI で `actions/setup-java` の Java 21 を daemon が再利用することは task 3.2 で確認済みである。
 

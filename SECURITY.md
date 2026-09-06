@@ -83,10 +83,22 @@ covers them by file-name pattern. Recording their checksums instead would mean
 regenerating the metadata every time any dependency changes, because the IDE
 fetches sources for the whole graph on demand rather than as part of a build.
 POM files, Gradle Module Metadata and binary JARs stay under checksum
-verification, including those resolved only to locate sources. Each rule is
-scoped to a file-name pattern, and to component coordinates where that is
-possible. If an artifact matching one of these rules ever becomes a build input,
-the rule should be removed and its checksum recorded instead.
+verification, including those resolved only to locate sources, except for the
+Groovy modules described below. Each rule is scoped to a file-name pattern, and
+to component coordinates where that is possible. If an artifact matching one of
+these rules ever becomes a build input, the rule should be removed and its
+checksum recorded instead.
+
+The Gradle Kotlin DSL tooling bundles Groovy, and IntelliJ IDEA resolves the
+`org.apache.groovy` modules — Module Metadata, POMs and JARs — while building
+the build-script model for editor support. No build resolves them: there are no
+Groovy build scripts, and nothing in the `.gradle.kts` files or the version
+catalog references Groovy. The set is the full Groovy distribution and its
+version tracks whichever Groovy the current Gradle bundles, so each Gradle
+upgrade would otherwise add a round of missing-checksum failures found only by
+importing in the IDE. `trusted-artifacts` trusts the whole `org.apache.groovy`
+group instead. If any build ever takes a Groovy artifact as a compile or runtime
+input, remove the rule and record checksums.
 
 `--write-verification-metadata` rewrites this file from Gradle's own model and
 drops XML comments, so the rationale lives here and only the `reason` attributes
