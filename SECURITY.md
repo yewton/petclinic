@@ -92,20 +92,34 @@ the rule should be removed and its checksum recorded instead.
 drops XML comments, so the rationale lives here and only the `reason` attributes
 stay in the file.
 
-### Java toolchain provisioning
+### Java provisioning
 
-Applying the Foojay resolver means an environment without a matching JDK will
-download one from the Foojay API and the vendor it points to. Gradle's
-dependency verification does not cover toolchain downloads.
+Gradle uses two independently declared Java runtimes. The daemon JVM starts
+Gradle itself; `gradle/gradle-daemon-jvm.properties` pins it to Java 21. The
+project toolchain compiles the source and also requires Java 21. Daemon JVM
+criteria match their declared version exactly. The CI workflows install the
+same Java 21 version; update the criteria and each `actions/setup-java` Java version
+together so CI does not need a separate daemon JVM. The declarations remain
+separate because Gradle's runtime and the project's compiler toolchain have
+different roles and can be changed independently when their requirements
+diverge.
 
-A download only happens where no Java 21 installation is present. CI installs
-one with `actions/setup-java`, so nothing is downloaded there. Renovate's
-environment does not provide one, which is what the resolver is there for. A
-developer machine without Java 21 will download one as well; the build does not
-require a locally installed JDK 21, so this is the expected path rather than an
-edge case.
+The generated criteria file contains Foojay redirect URLs. Linux `X86_64` is
+the CI target; other generated platform entries require validation before they
+are treated as supported. Run `./gradlew updateDaemonJvm --jvm-version=21`
+whenever the required daemon Java version, vendor, native-image capability, or
+supported platform set changes. Review the generated URLs as part of that
+update.
 
-A JVM must already be present for any of this to work: Gradle 9 requires JVM 17
-or later to run, and the resolver is a settings plugin, so it is evaluated far
-too late to supply the JVM Gradle itself runs on. Declaring that JVM is tracked
-as a separate change under `openspec/changes/pin-daemon-jvm/`.
+Applying the Foojay resolver means an environment without the Java 21 project
+toolchain downloads one from the Foojay API and the vendor it points to.
+Gradle's dependency verification does not cover daemon or toolchain downloads.
+
+A Java 21 download can occur where no matching installation is available and
+toolchain auto-provisioning is enabled. Without auto-provisioning, Gradle fails
+to start the daemon. Renovate and a developer machine without Java 21 must
+therefore provide Java 21 or permit Gradle to provision it.
+
+The Foojay resolver remains a settings plugin, so it is evaluated after the
+Gradle daemon starts and cannot provide that daemon's JVM. The daemon criteria
+file covers this earlier startup layer.
