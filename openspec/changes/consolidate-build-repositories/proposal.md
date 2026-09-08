@@ -7,11 +7,12 @@ Every `repositories` block across the eight composite builds now carries the sam
 - Audit each `repositories` block and classify it as load-bearing (an artifact resolves through it) or vestigial (shadowed by another block or never consulted). Spikes required:
   - Whether `pluginManagement.repositories` in the root / `core` / `fullstack-html` / `fullstack-htmx` settings is consulted at all, given those builds resolve every plugin through `includeBuild` substitution.
   - Whether `dependencyResolutionManagement.repositories` in `core` / `fullstack-html` / `fullstack-htmx` settings is consulted, given all three application projects declare project-level repositories through the `net.yewton.petclinic.commons` convention plugin (`RepositoriesMode.PREFER_PROJECT` shadows settings-level repositories per project).
-- Remove the blocks the audit proves vestigial.
+- Remove the seven blocks the spikes proved vestigial: `pluginManagement.repositories` in root / `core` / `fullstack-html` / `fullstack-htmx`, and `dependencyResolutionManagement.repositories` in `core` / `fullstack-html` / `fullstack-htmx`.
 - Establish a single source of truth for the repositories that remain:
-  - Application projects: resolve from settings `dependencyResolutionManagement` via a new `net.yewton.petclinic.repositories` settings convention plugin hosted in `build-logic-settings`, applied to root / `core` / `fullstack-html` / `fullstack-htmx`. Set `RepositoriesMode.FAIL_ON_PROJECT_REPOS` so the single source is enforced, and delete the `repositories` block from `net.yewton.petclinic.commons`.
-  - Infrastructure plugin builds (`lint-logic`, `build-logic`, `build-logic-settings`): these compile `kotlin-dsl` and resolve their plugin classpath through `pluginManagement.repositories`, which a settings convention plugin cannot configure (evaluated before plugins apply) and which `lint-logic` and `build-logic-settings` cannot receive from a plugin anyway (`build-logic-settings` depends on `lint-logic`, so the dependency would cycle). Their `pluginManagement.repositories` stays inline. Reduce it to a shared `apply(from = ...)` snippet or accept three commented copies — decided in design.
-- Record the resolved repository topology in the `build-environment` capability spec so future changes have a contract to check against, and in `CLAUDE.md`.
+  - Infrastructure plugin builds (`lint-logic`, `build-logic`, `build-logic-settings`) — which compile `kotlin-dsl` and need both `pluginManagement.repositories` and `dependencyResolutionManagement.repositories`: add `gradle/repositories.settings.gradle.kts` declaring both blocks, and `apply(from = file("../gradle/repositories.settings.gradle.kts"))` from each of the three, replacing their inline blocks. This is the pattern `gradle/gradle` itself uses (`gradle/shared-with-buildSrc/mirrors.settings.gradle.kts`). A settings convention plugin is *not* used: it cannot configure `pluginManagement.repositories`, and `lint-logic` / `build-logic-settings` could not apply one without a composite-build cycle.
+  - Application projects: unchanged — `net.yewton.petclinic.commons` already declares their `repositories {}` in one place.
+- The Maven Central mirror endpoint then lives in exactly two files (`gradle/repositories.settings.gradle.kts`, `commons.gradle.kts`), down from ~14.
+- Record the resolved repository topology in a new `artifact-resolution` capability spec so future changes have a contract to check against, and trim the `CLAUDE.md` note.
 
 ## Capabilities
 
@@ -25,10 +26,11 @@ Every `repositories` block across the eight composite builds now carries the sam
 
 ## Impact
 
-- `build-logic-settings/`: new `net.yewton.petclinic.repositories.settings.gradle.kts` precompiled settings script.
-- `settings.gradle.kts` (root), `core/settings.gradle.kts`, `fullstack-html/settings.gradle.kts`, `fullstack-htmx/settings.gradle.kts`: apply the new plugin; remove blocks the audit proves vestigial.
-- `build-logic/commons/src/main/kotlin/net.yewton.petclinic.commons.gradle.kts`: remove the `repositories` block.
-- `lint-logic/settings.gradle.kts`, `build-logic/settings.gradle.kts`, `build-logic-settings/settings.gradle.kts`: `pluginManagement.repositories` reduced to a shared snippet or left as commented copies.
+- `settings.gradle.kts` (root), `core/settings.gradle.kts`, `fullstack-html/settings.gradle.kts`, `fullstack-htmx/settings.gradle.kts`: remove `pluginManagement.repositories` (all four) and `dependencyResolutionManagement.repositories` (`core` / `fullstack-*`). Net: root ends with only `pluginManagement { includeBuild(...) }`; the apps keep `pluginManagement { includeBuild(...) }` and their `plugins { id("net.yewton.petclinic.foojay-resolver") }`.
+- `gradle/repositories.settings.gradle.kts`: new shared settings script (`pluginManagement.repositories` + `dependencyResolutionManagement.repositories`, mirror first then `gradlePluginPortal()`).
+- `lint-logic/settings.gradle.kts`, `build-logic/settings.gradle.kts`, `build-logic-settings/settings.gradle.kts`: replace inline repository blocks with `apply(from = file("../gradle/repositories.settings.gradle.kts"))`; keep `includeBuild(...)`.
+- `build-logic/commons/src/main/kotlin/net.yewton.petclinic.commons.gradle.kts`: unchanged.
+- No new convention plugin; `net.yewton.petclinic.foojay-resolver` unchanged.
 - No dependency versions change; `gradle/verification-metadata.xml` is unaffected (verification is by artifact checksum, independent of source repository).
 - Renovate's `renovate.json` `hostRules` throttling stays as-is (independent defense).
 - `libs/**` is out of scope (not part of the composite build; Renovate-ignored).

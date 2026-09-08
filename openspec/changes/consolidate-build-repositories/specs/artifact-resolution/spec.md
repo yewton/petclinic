@@ -26,32 +26,32 @@ For any resolution context (a build's plugin classpath and its dependency config
 - **THEN** the mirror is listed first
 - **AND** the canonical repository follows as a fallback for artifacts the mirror does not carry
 
-### Requirement: Single declared source per resolution context
+### Requirement: One declaration site per group of builds
 
-Each resolution context that needs repositories MUST declare them in exactly one place. Application project dependencies resolve from the settings `dependencyResolutionManagement` of their build; no application project declares its own `repositories` block.
+Repository configuration MUST NOT be hand-copied per build. The build tree has exactly two declaration sites: `gradle/repositories.settings.gradle.kts` for the infrastructure plugin builds (`lint-logic`, `build-logic`, `build-logic-settings`), applied to each via `apply(from = ...)`; and `net.yewton.petclinic.commons`' project-level `repositories {}` for the application projects. The application builds' `settings.gradle.kts` files MUST NOT declare `pluginManagement.repositories` or `dependencyResolutionManagement.repositories` (every plugin they use is an `includeBuild` substitution; every project dependency resolves through `commons`).
 
-#### Scenario: An application project declares its own repositories
+#### Scenario: Changing the Maven Central mirror endpoint
 
-- **WHEN** a project in the `core`, `fullstack-html`, or `fullstack-htmx` build adds a `repositories {}` block
-- **THEN** the build fails at configuration time
-- **AND** the failure names the offending project and points to the settings-level repository declaration
+- **WHEN** the mirror endpoint must change
+- **THEN** the edit is made in `gradle/repositories.settings.gradle.kts` and `commons.gradle.kts` — two files
+- **AND** no `settings.gradle.kts` needs editing
 
-#### Scenario: Changing the mirror endpoint for application builds
+#### Scenario: An application build's settings file is reviewed
 
-- **WHEN** the Maven Central mirror endpoint used by the application builds must change
-- **THEN** the change is made in one settings convention plugin
-- **AND** no application build's `settings.gradle.kts` and no project convention plugin needs editing
+- **WHEN** a contributor opens `settings.gradle.kts`, `core/settings.gradle.kts`, `fullstack-html/settings.gradle.kts`, or `fullstack-htmx/settings.gradle.kts`
+- **THEN** it contains no `repositories { }` block in `pluginManagement` or `dependencyResolutionManagement`
 
-### Requirement: Repository configuration that cannot be centralized is documented
+### Requirement: The infrastructure repository config is shared by file, not by plugin
 
-The infrastructure plugin builds (`lint-logic`, `build-logic`, `build-logic-settings`) resolve their plugin classpath from `pluginManagement.repositories`, which a settings convention plugin cannot supply. Where a repository block is repeated because it cannot be centralized, each copy MUST carry a comment stating why, and the topology MUST be recorded in project documentation.
+The infrastructure plugin builds resolve their plugin classpath from `pluginManagement.repositories`. A precompiled settings convention plugin cannot configure that block (it runs after the `plugins {}` block), and `lint-logic` / `build-logic-settings` could not apply such a plugin without a composite-build cycle. The shared configuration MUST therefore be a settings script applied with `apply(from = ...)`, matching the pattern used by `gradle/gradle` itself.
 
-#### Scenario: A contributor reads an infrastructure build's settings file
+#### Scenario: An infrastructure build resolves its plugin classpath
 
-- **WHEN** a contributor opens `lint-logic/settings.gradle.kts` or `build-logic-settings/settings.gradle.kts`
-- **THEN** the `pluginManagement.repositories` block explains that it is an intentional inline copy and where the canonical rationale lives
+- **WHEN** `lint-logic`, `build-logic`, or `build-logic-settings` is configured
+- **THEN** its `pluginManagement.repositories` and `dependencyResolutionManagement.repositories` come from `gradle/repositories.settings.gradle.kts` via `apply(from = file("../gradle/repositories.settings.gradle.kts"))`
+- **AND** its inline `pluginManagement {}` block contains only `includeBuild(...)` lines
 
 #### Scenario: A contributor plans a repository change
 
 - **WHEN** a contributor needs to change repository configuration
-- **THEN** project documentation tells them which blocks are load-bearing, which resolution context each serves, and which cannot be centralized
+- **THEN** project documentation states which two files are load-bearing, which resolution context each serves, and that the application builds intentionally declare nothing
