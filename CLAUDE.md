@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Format**: `./gradlew spotlessApply` — enforces ktlint via Spotless
 - **JOOQ codegen**: `./gradlew :core:lib:jooqCodegen` — regenerate after schema changes
 - **依存関係検証メタデータ更新**: `./gradlew --dependency-verification lenient -q --write-verification-metadata sha256 check --no-configuration-cache` — **手でバージョンを変更したら実行**して `gradle/verification-metadata.xml` を再生成しコミットする。Renovate 経由の更新では Renovate が `dependencies` タスクで同じことを行い同じ PR に含めるため、通常は手を動かす必要はない。例外は Spotless の更新で ktlint のバージョンが変わったとき。ktlint は Spotless が detached configuration で解決するため `dependencies` では記録されず、CI が検証エラーで落ちる。そのときはこのコマンド（`check` を使う版）で再生成する
+  - Kotlin Gradle Plugin (build-logic では `kotlin-dsl` 経由で Gradle 同梱版に固定される) の ABI validation 用 classpath `kotlinAbiValidationCompatClasspath` は `org.jetbrains.kotlin:kotlin-build-tools-impl` を `{strictly [<KGPのメジャー.マイナー>-Beta2, <次のマイナー>)}` という浮動レンジで解決する。カタログの `kotlin` を固定していても、その 2.x.y 系に新しいパッチ (RC 含む) が publish されるたびメタデータが古くなる。CI の `check` は ABI validation 無効なのでこの config を解決しないが、上記の再生成コマンド・`dependencies`・`--refresh-dependencies` は解決するので、その 2.x.y 系のパッチが出たらこのコマンドで再生成する
 - **Run apps**:
   - プレーンHTML版: `./gradlew :fullstack-html:app:bootRun`
   - HTMX版: `./gradlew :fullstack-htmx:app:bootRun`
