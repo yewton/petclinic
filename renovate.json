@@ -8,6 +8,20 @@
   "ignorePaths": [
     "libs/**"
   ],
+  "hostRules": [
+    {
+      "description": "共有 IP から Maven Central / Gradle Plugin Portal への同時・毎秒リクエストを絞り、HTTP 429 を避ける",
+      "matchHost": "repo.maven.apache.org",
+      "concurrentRequestLimit": 2,
+      "maxRequestsPerSecond": 4
+    },
+    {
+      "description": "共有 IP から Maven Central / Gradle Plugin Portal への同時・毎秒リクエストを絞り、HTTP 429 を避ける",
+      "matchHost": "plugins.gradle.org",
+      "concurrentRequestLimit": 2,
+      "maxRequestsPerSecond": 4
+    }
+  ],
   "packageRules": [
     {
       "description": "Spring Boot のマネージドバージョンに合わせて手動更新するため Renovate 対象外",
