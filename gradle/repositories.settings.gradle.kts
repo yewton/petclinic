@@ -39,9 +39,9 @@ gradle.settingsEvaluated {
 
 dependencyResolutionManagement {
   repositories {
-    // Keep this aligned with mavenCentralMirrorUrl: pluginManagement is extracted before the script body.
+    // Mirror first; see mavenCentralMirrorUrl and the settingsEvaluated guard below.
     // This release-only mirror lets future SNAPSHOT dependencies bypass it for Maven Central or the Plugin Portal.
-    maven("https://maven-central.storage-download.googleapis.com/maven2/") {
+    maven(mavenCentralMirrorUrl) {
       name = "Maven Central Mirror"
       mavenContent { releasesOnly() }
     }
