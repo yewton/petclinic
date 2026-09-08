@@ -48,10 +48,11 @@ The other ~7 occurrences are candidates for deletion.
 
 **Non-Goals:**
 
-- Centralizing `pluginManagement.repositories`. It is evaluated before the `plugins {}` block, so no settings convention plugin and no `apply(from = ...)` can supply it. Only a Gradle init script's `beforeSettings {}` could, and that requires `--init-script` on every invocation, which Renovate's fixed Gradle command cannot pass. Ruled out.
-- Restructuring `build-logic-settings` to sit below `lint-logic` (drop its self-formatting) so `lint-logic` could apply the settings plugin. The only gain would be `dependencyResolutionManagement` centralization for one more build; `pluginManagement` still could not be shared. Not worth the loss of formatting on that build.
+- A settings *convention plugin* for repositories (`net.yewton.petclinic.repositories`) or `RepositoriesMode.FAIL_ON_PROJECT_REPOS` enforcement. A precompiled settings plugin runs after the `plugins {}` block, so it cannot configure `pluginManagement.repositories` (the block that actually 429'd); and `lint-logic` / `build-logic-settings` could not apply it anyway (`build-logic-settings → lint-logic` would cycle). It would centralize only `dependencyResolutionManagement.repositories` for the application builds — which the spikes proved vestigial — so it removes nothing real while adding a plugin. `apply(from = ...)` of a shared settings script, by contrast, *can* supply `pluginManagement.repositories` (verified on Gradle 9.7.1: a plugin marker resolved from repos declared by the applied script), so that is the mechanism used instead — see Decision 2.
+- Restructuring `build-logic-settings` to sit below `lint-logic`.
 - Touching `libs/**` (outside the composite build, Renovate-ignored).
 - Changing `renovate.json` `hostRules` (independent throttling, already in place).
+- A Gradle init script `beforeSettings {}` — could configure `pluginManagement` for the whole tree, but needs `--init-script` on every invocation, which Renovate's fixed Gradle command cannot pass.
 
 ## Decisions
 
@@ -64,63 +65,90 @@ Run two spikes on a throwaway branch:
 
 If a spike fails, that block is load-bearing and stays (documented). If it passes, the block is deleted.
 
-**Alternative considered:** skip the audit, mechanically add a settings plugin over the existing blocks. Rejected — it leaves the vestigial blocks in place as permanent confusion and only removes 3–5 of ~13 sites.
+**Alternative considered:** skip the audit, mechanically add a settings plugin over the existing blocks. Rejected — it leaves the vestigial blocks in place as permanent confusion and only removes 3–5 of ~13 sites. (Spike A + Spike B both passed — see Spike Results — so all seven vestigial blocks are deleted.)
 
-### Decision 2: `net.yewton.petclinic.repositories` settings convention plugin for application builds
+### Decision 2: one shared `apply(from = ...)` settings script for the three infrastructure builds
 
-Host it in `build-logic-settings` beside `net.yewton.petclinic.foojay-resolver`. It configures:
+After the spikes, only two contexts still need a repository declaration:
+
+- the **infrastructure plugin builds** (`lint-logic`, `build-logic`, `build-logic-settings`) — both their `pluginManagement.repositories` (the `kotlin-dsl` plugin classpath) and their `dependencyResolutionManagement.repositories` (`spotless-plugin-gradle`, `spring-boot-gradle-plugin`, jOOQ, the foojay marker)
+- the **application projects** — served by `net.yewton.petclinic.commons`' project-level `repositories {}`, already a single declaration
+
+For the first, add `gradle/repositories.settings.gradle.kts` declaring both blocks directly:
 
 ```
-dependencyResolutionManagement {
-    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
-    repositories {
-        <mirror>
-        mavenCentral()
-    }
-}
+pluginManagement { repositories { <mirror>; gradlePluginPortal() } }
+dependencyResolutionManagement { repositories { <mirror>; gradlePluginPortal() } }
 ```
 
-Applied to root / `core` / `fullstack-html` / `fullstack-htmx` (the builds that already `includeBuild("build-logic-settings")` in `pluginManagement`, and that host application projects). `FAIL_ON_PROJECT_REPOS` makes the settings block the enforced single source; the `repositories {}` block is then removed from `net.yewton.petclinic.commons`.
+and, in each of the three infra `settings.gradle.kts`, replace the inline repository blocks with:
 
-**Alternative considered:** keep `commons` as the source and delete the settings blocks. Rejected — `commons` is a *project* convention plugin, so this concern would live at the wrong layer (repositories are a build-wide input, not a per-project one), and there would be no enforcement against a future project re-adding its own repositories.
+```
+apply(from = file("../gradle/repositories.settings.gradle.kts"))
+```
 
-**Alternative considered:** add `build-logic` as a fifth consumer of the plugin. Possible (no cycle: `build-logic → build-logic-settings → {lint-logic, platforms}`), but `build-logic` needs `gradlePluginPortal()` in `dependencyResolutionManagement` for portal-only plugin markers and the plugin would have to add it for everyone. Deferred to Open Questions.
+All three infra builds are one directory below the root, so the relative path is identical (`../gradle/...`) for all of them. The inline `pluginManagement {}` blocks keep only their `includeBuild(...)` lines, so the shared script is the sole source of repositories and the mirror stays first regardless of `apply` position.
 
-### Decision 3: infra `pluginManagement.repositories` — shared snippet vs. copies
+`net.yewton.petclinic.commons` is left unchanged — the mirror endpoint then lives in exactly two files (`gradle/repositories.settings.gradle.kts` and `commons.gradle.kts`), down from ~14.
 
-`lint-logic`, `build-logic`, `build-logic-settings` each need `pluginManagement { repositories { <mirror>; gradlePluginPortal() } }` and cannot get it from a plugin. Two options, decided during implementation after Spike A:
+**Precedent:** this is Gradle's own pattern. `gradle/gradle` has `gradle/shared-with-buildSrc/mirrors.settings.gradle.kts`, applied via `apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")` from `settings.gradle.kts` and `apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")` from `build-logic/settings.gradle.kts`. It configures `settings.pluginManagement.repositories`, project `repositories`, and `buildscript.repositories` from one file. The only difference: Gradle *rewrites* existing repository URLs to an internal Artifactory (a full transparent proxy) via a `gradle.settingsEvaluated {}` hook; PetClinic *prepends* a mirror repository because the GCS mirror is partial (plugin-portal-only artifacts still need the `gradlePluginPortal()` fallback), which reads more clearly as a direct `repositories {}` declaration.
 
-- **3a**: extract the block to `build-logic-settings/../gradle/plugin-repositories.settings.gradle.kts` (or similar) and `apply(from = file("<relative>/…"))` at the top of each infra settings file. One definition; relative paths differ per file.
-- **3b**: three inline copies, each with a one-line comment pointing at the canonical explanation. Rarely changes; no relative-path fragility.
+**Alternative considered:** three inline copies of the block, each with a pointer comment. Rejected once `apply(from = ...)` was confirmed to work for `pluginManagement.repositories` — the shared file removes the duplication with the same relative path everywhere and matches Gradle's own build.
 
-Leaning **3b** — three short copies of a block that changes once a year beat a fragile cross-build file include. Revisit if the block grows.
+**Alternative considered:** `net.yewton.petclinic.repositories` settings convention plugin + `FAIL_ON_PROJECT_REPOS`, applied to the application builds, deleting `commons`' `repositories` block. Rejected — see Non-Goals. It cannot touch `pluginManagement.repositories`, so the infra builds would need the shared-file solution anyway; it would only centralize the application `dependencyResolutionManagement.repositories`, which the spikes proved vestigial; and moving the application repositories out of `commons` is an unverified change (Spike B only tested removing the settings block, not removing the `commons` block). The `FAIL_ON_PROJECT_REPOS` guard can be added later as a one-line follow-up if project-level repository drift ever becomes real.
 
-### Decision 4: record the topology in `build-environment` spec's neighbour, not inline in code
+### Decision 3: record the topology in the `artifact-resolution` spec, not inline in code
 
 Code comments drift. The `artifact-resolution` capability spec states the invariants (mirror-first, both resolution contexts, cold resolution must not 429) as scenarios. `CLAUDE.md`'s existing "Maven リポジトリ" note is trimmed to point at the spec plus the load-bearing-vs-vestigial summary.
 
 ## Risks / Trade-offs
 
-- **Spike A/B pass locally but a cold CI/Renovate run still needs a deleted block** → run the spikes with `--refresh-dependencies` and an emptied Gradle module cache; land the deletions in a single PR that a Renovate rebase will exercise before merge; keep the diff a pure revert if CI/Renovate 429s.
-- **`FAIL_ON_PROJECT_REPOS` breaks a future contributor who adds `repositories {}` to a build file** → that is the intent; the failure message names the offending project and points to the settings plugin.
-- **The GCS mirror lags a brand-new release** → `mavenCentral()` fallback covers it; Renovate's `minimumReleaseAge: "3 days"` makes the window irrelevant here.
-- **`apply(from = ...)` (option 3a) with wrong `../` depth** → only a risk if 3a is chosen; a smoke `./gradlew help` catches it immediately.
-- **Mirror endpoint disappears / needs auth later** → after this change the application-project edit is one file; infra builds are three files (or one with 3a). Down from ~13.
+- **A deleted block turns out to be needed on a cold CI/Renovate runner** → the spikes ran with `--refresh-dependencies` (forces repository consultation) and reproduced no failure beyond two pre-existing ones. Land PR 1 (deletions) as a pure removal so a Renovate rebase exercises it before merge, and keep it a one-commit revert.
+- **`apply(from = file("../gradle/repositories.settings.gradle.kts"))` with a wrong relative path** → all three infra builds are the same depth so the path is identical; a smoke `./gradlew help` catches a typo immediately.
+- **Two `pluginManagement {}` blocks (shared file + inline `includeBuild`) do not merge as expected** → verified on Gradle 9.7.1 that they merge and that repository order follows declaration order; the inline blocks declare no repositories so the shared file is unambiguously first.
+- **The GCS mirror lags a brand-new release** → `mavenCentral()` / `gradlePluginPortal()` fallback covers it; Renovate's `minimumReleaseAge: "3 days"` makes the window irrelevant here.
+- **Mirror endpoint disappears / needs auth later** → after this change it lives in two files (`gradle/repositories.settings.gradle.kts`, `commons.gradle.kts`), down from ~14.
 
 ## Migration Plan
 
-1. Land nothing until PR #189 (the second 429 fix) is merged and a Renovate PR has been rebased onto it and gone green — that confirms the load-bearing set.
-2. Spike A and Spike B on a throwaway branch; record results in this document.
-3. PR 1: delete the blocks the spikes proved vestigial. Small, pure removal.
-4. PR 2: add `net.yewton.petclinic.repositories`, apply it to the four builds, set `FAIL_ON_PROJECT_REPOS`, delete `commons`' `repositories` block.
-5. PR 3: infra `pluginManagement.repositories` — option 3a or 3b.
-6. PR 4: `artifact-resolution` spec + `CLAUDE.md` trim.
-7. Rollback: each PR is independently revertible; PR 1 is the only one with 429-regression risk and is a one-commit revert.
+1. ~~Land nothing until PR #189 is merged and a Renovate PR has gone green.~~ Done — #186, #187, #189, #190 merged; Renovate re-ran and got past the 429 and past dependency verification (the remaining #174 failure is an unrelated Spring Boot 4.1 test break).
+2. ~~Spike A and Spike B.~~ Done — see Spike Results; PR #191.
+3. **PR 1**: delete the seven vestigial blocks (`pluginManagement.repositories` in root / `core` / `fullstack-html` / `fullstack-htmx`; `dependencyResolutionManagement.repositories` in `core` / `fullstack-html` / `fullstack-htmx`). Pure removal.
+4. **PR 2**: add `gradle/repositories.settings.gradle.kts`; `apply(from = ...)` it from `lint-logic` / `build-logic` / `build-logic-settings`; delete their inline repository blocks (keep `includeBuild`). `commons.gradle.kts` untouched.
+5. **PR 3**: `artifact-resolution` spec + `CLAUDE.md` trim.
+6. Rollback: each PR is independently revertible; PR 1 is the only one with 429-regression risk and is a one-commit revert.
+
+## Spike Results
+
+Run locally against `main` at `f1e4fa71e8` (after #186, #187, #189, #190 merged), Gradle 9.7.1, with `--refresh-dependencies` to force repository consultation.
+
+### Spike A — `pluginManagement.repositories` in root / `core` / `fullstack-html` / `fullstack-htmx`: **VESTIGIAL**
+
+Emptied the `repositories { }` block (kept `includeBuild` lines) in all four settings files. An empty block means zero repositories, not the `gradlePluginPortal()` default — any plugin needing download would fail hard.
+
+- `./gradlew help` — pass (root `plugins { id("net.yewton.petclinic.foojay-resolver") }` resolves via `includeBuild`).
+- `./gradlew :core:lib:compileKotlin :fullstack-html:app:compileKotlin :fullstack-htmx:app:compileKotlin :core:lib:buildEnvironment :fullstack-htmx:app:buildEnvironment --refresh-dependencies` — pass. `buildEnvironment` showed the plugin/buildscript classpaths (`kotlin-gradle-plugin-api`, `kotlin-allopen`, jOOQ) resolving entirely through `project ':build-logic:*'` / `project ':build-logic-settings'` substitutions, never a repository.
+
+Conclusion: every plugin these four builds use arrives via `includeBuild` substitution. Their `pluginManagement.repositories` blocks can be deleted outright.
+
+### Spike B — `dependencyResolutionManagement.repositories` in `core` / `fullstack-html` / `fullstack-htmx`: **VESTIGIAL**
+
+Removed the whole `dependencyResolutionManagement { repositories { … } }` block from the three build settings.
+
+- `./gradlew :core:lib:jooqCodegen :core:lib:dependencies :core:lib:compileTestKotlin :fullstack-htmx:app:dependencies :fullstack-htmx:app:compileTestKotlin :fullstack-html:app:dependencies --refresh-dependencies` — the resolution paths all succeeded (`jooqCodegen` classpath, `runtimeClasspath`, test classpath, and Kotlin's detached build-tools configs all downloaded `from repository Maven Central Mirror` / `MavenRepo`, i.e. the repositories declared by `net.yewton.petclinic.commons` at project level).
+- The run reported two failures, both **reproduced identically on unmodified `main`** with the same command:
+  1. `java.nio.file.FileAlreadyExistsException` under `build/reports/dependency-verification/at-*/` — a Gradle race when several `dependencies` (`software-reporting-tasks`) tasks run in parallel and share the verification-report directory. Disappears when the `dependencies` tasks are run one at a time.
+  2. `kotlin-build-tools-impl:2.4.20` fails dependency verification — the Kotlin plugin resolves the build-tools implementation through a detached configuration with a floating selector; `2.4.20` final was released after the `2.4.20-RC3` recorded in `gradle/verification-metadata.xml`, and `--refresh-dependencies` picks it up. A normal build uses the cached RC3 and passes. **This is a pre-existing latent issue on `main`, independent of this change** (see Open Questions).
+
+Conclusion: `RepositoriesMode.PREFER_PROJECT` (the default) makes `commons`' project-level `repositories` authoritative for every project in these builds; the settings-level block is never consulted and can be deleted.
+
+### Combined
+
+Spike A + Spike B applied together (all seven blocks removed at once) produced no failure beyond the two pre-existing ones above. PR 1 can delete all seven in one change.
 
 ## Open Questions
 
-- Does Spike A pass, or is `pluginManagement.repositories` in the application/root settings actually consulted for something (e.g. a detached configuration, `buildSrc`-style path)?
-- Does Spike B pass, or does some configuration in `core`/`fullstack-*` (jOOQ codegen classpath, test fixtures) resolve through settings `dependencyResolutionManagement` rather than `commons`?
-- Include `build-logic` as a fifth consumer of `net.yewton.petclinic.repositories` for its `dependencyResolutionManagement`, or leave it inline with `lint-logic`/`build-logic-settings`?
-- Option 3a or 3b for the infra `pluginManagement.repositories`?
-- Should `net.yewton.petclinic.foojay-resolver` and `net.yewton.petclinic.repositories` be merged into one `net.yewton.petclinic.settings` plugin (the name #183 proposed), or kept separate for single responsibility?
+- **Pre-existing, surfaced by Spike B — handed off, out of scope here**: `kotlin-build-tools-impl:2.4.20` is not in `gradle/verification-metadata.xml` (only `2.4.20-RC3` is). Any `--refresh-dependencies` run on `main` fails verification today. This is a dependency-verification / Kotlin-version concern, not a repository-declaration one, so it is being handled on its own branch (`fix/kotlin-build-tools-verification`) and is not part of `consolidate-build-repositories`. No action needed in this change.
+- **Resolved** (`net.yewton.petclinic.repositories` plugin, `build-logic` as fifth consumer, merge with `foojay-resolver`): all moot. Decision 2 uses a shared `apply(from = ...)` settings script instead of a plugin. `build-logic` is one of the three infra builds that apply that script; there is no repositories plugin to merge with `foojay-resolver`, which stays as-is.
+- **Resolved** (shared file vs. inline copies for the infra `pluginManagement.repositories`): shared file — `apply(from = "../gradle/repositories.settings.gradle.kts")` — after confirming on Gradle 9.7.1 that `apply(from = ...)` carries `pluginManagement.repositories`, and matching `gradle/gradle`'s own `mirrors.settings.gradle.kts` pattern.
+- **Resolved** (`commons` repositories block): left in place. The mirror ends up in two files. Deleting it and making settings the single source would need its own verification and buys only `FAIL_ON_PROJECT_REPOS` enforcement, deferrable to a later one-line follow-up.
