@@ -24,9 +24,11 @@
   ],
   "packageRules": [
     {
-      "description": "Spring Boot のマネージドバージョンに合わせて手動更新するため Renovate 対象外",
+      "description": "Spring Boot のマネージドバージョンに合わせて手動更新するため Renovate 対象外。Kotlin の plugin marker は org.jetbrains.kotlin とは別 group のため、将来 marker group を追加する場合もここに明示する",
       "matchPackageNames": [
         "org.jetbrains.kotlin:{/,}**",
+        "org.jetbrains.kotlin.jvm:{/,}**",
+        "org.jetbrains.kotlin.plugin.spring:{/,}**",
         "org.jooq:{/,}**",
         "io.spring.gradle:dependency-management-plugin"
       ],
