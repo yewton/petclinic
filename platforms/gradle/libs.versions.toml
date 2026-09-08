@@ -14,8 +14,10 @@ spring-boot-plugin = "org.springframework.boot:spring-boot-gradle-plugin:4.0.6"
 # Spring Boot の依存バージョンに合わせる
 # https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
 dependency-management-plugin = "io.spring.gradle:dependency-management-plugin:1.1.7"
-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlin-allopen = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
+# Plugin marker を使い、kotlin-dsl の embedded Kotlin によって KGP / allopen が
+# Gradle 同梱版へ暗黙に格上げされることを防ぐ。
+kotlin-jvm-plugin = { module = "org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
+kotlin-spring-plugin = { module = "org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin" }
 webjars-bootstrap = "org.webjars.npm:bootstrap:5.3.8"
 webjars-font-awesome = "org.webjars.npm:font-awesome:4.7.0"
 webjars-htmx = "org.webjars.npm:htmx.org:2.0.10"
