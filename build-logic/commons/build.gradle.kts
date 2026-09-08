@@ -5,5 +5,5 @@ plugins {
 
 dependencies {
   implementation(platform("net.yewton.petclinic.platform:plugins-platform"))
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
+  implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin")
 }

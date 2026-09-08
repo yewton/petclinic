@@ -8,8 +8,8 @@ dependencies {
   constraints {
     api(libs.spring.boot.plugin)
     api(libs.dependency.management.plugin)
-    api(libs.kotlin.gradle.plugin)
-    api(libs.kotlin.allopen)
+    api(libs.kotlin.jvm.plugin)
+    api(libs.kotlin.spring.plugin)
     api(libs.jooq.codegen.core)
     api(libs.jooq.meta.core)
     api(libs.jooq.meta.extensions)
