@@ -147,7 +147,7 @@ Spike A + Spike B applied together (all seven blocks removed at once) produced n
 
 ## Open Questions
 
-- **Pre-existing, surfaced by Spike B**: `kotlin-build-tools-impl:2.4.20` is not in `gradle/verification-metadata.xml` (only `2.4.20-RC3` is). Any `--refresh-dependencies` run on `main` fails verification today. Track separately from this change — likely a Kotlin version bump or a metadata regen; confirm whether CI's non-`--refresh-dependencies` runs stay green.
+- **Pre-existing, surfaced by Spike B — handed off, out of scope here**: `kotlin-build-tools-impl:2.4.20` is not in `gradle/verification-metadata.xml` (only `2.4.20-RC3` is). Any `--refresh-dependencies` run on `main` fails verification today. This is a dependency-verification / Kotlin-version concern, not a repository-declaration one, so it is being handled on its own branch (`fix/kotlin-build-tools-verification`) and is not part of `consolidate-build-repositories`. No action needed in this change.
 - Include `build-logic` as a fifth consumer of `net.yewton.petclinic.repositories` for its `dependencyResolutionManagement`, or leave it inline with `lint-logic`/`build-logic-settings`?
 - Option 3a or 3b for the infra `pluginManagement.repositories`?
 - Should `net.yewton.petclinic.foojay-resolver` and `net.yewton.petclinic.repositories` be merged into one `net.yewton.petclinic.settings` plugin (the name #183 proposed), or kept separate for single responsibility?
