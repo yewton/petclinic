@@ -94,7 +94,11 @@ references/                        — git submodules; spring-petclinic is the r
 
 ### Maven リポジトリ
 
-すべての `repositories` ブロックは Google がホストする Maven Central ミラー (`https://maven-central.storage-download.googleapis.com/maven2/`) を `mavenCentral()` / `gradlePluginPortal()` より先に引く。CI ランナーと Renovate のクラウドランナーは共有 IP のため `repo.maven.apache.org` から HTTP 429 を受けやすく、特に Renovate の検証メタデータ再生成 (`--write-verification-metadata`) がキャッシュを迂回して大量リクエストを投げるところで顕在化する。Gradle は 429 を受けたリポジトリをその場で無効化してフォールバックしないため、レート制限を受けるリポジトリを先頭に置けない。依存関係検証は成果物の SHA-256 で行うため取得元がミラーでも安全性は変わらない。
+リポジトリ宣言は 2 箇所に集約する。`gradle/repositories.settings.gradle.kts`（settings スクリプト。7 つの `settings.gradle.kts` が `pluginManagement {}` / `plugins {}` ブロックの**後ろ**で `apply(from = ...)` して取り込み、`pluginManagement.repositories` と `dependencyResolutionManagement.repositories` の両方を定義）と、`build-logic/commons/src/main/kotlin/net.yewton.petclinic.commons.gradle.kts` の project-level `repositories {}`（`commons` を適用するプロジェクトの依存）。`settings.gradle.kts` に共有リストを再宣言しない（build 固有のリポジトリが必要なら `apply(from = ...)` 行の後ろに足す）。
+
+Google がホストする Maven Central ミラー (`https://maven-central.storage-download.googleapis.com/maven2/`) は常に `mavenCentral()` / `gradlePluginPortal()` より先に置く。理由は 2 つ。(a) CI ランナーと Renovate のクラウドランナーは共有 IP のため `repo.maven.apache.org` から HTTP 429 を受けやすく、Gradle は 429 を受けたリポジトリをその場で無効化してフォールバックしない。(b) `verify-metadata=true` では、`commons` を適用する build が Kotlin プラグインの marker POM (`org.jetbrains.kotlin.jvm.gradle.plugin`) を `pluginManagement.repositories` で再解決する。Gradle Plugin Portal が生成する marker POM は Maven Central のものとバイト列が異なり、`verification-metadata.xml` には Central 版の checksum が記録されているため、ミラーが先頭でないと検証に失敗する。共有スクリプト末尾の `gradle.settingsEvaluated {}` ガードが「`pluginManagement.repositories` の先頭がミラーでない」場合にビルドを即座に失敗させる（サイレントに Portal へフォールバックする壊れ方は CI でしか見えないため）。
+
+詳細は `openspec/changes/consolidate-build-repositories/design.md`（または archive 後の `openspec/specs/artifact-resolution/spec.md`）を参照する。
 
 ### Domain packages
 Each domain package (`owner`, `pet`, `visit`, `vet`) follows the same pattern:
