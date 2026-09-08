@@ -1,14 +1,16 @@
 ## 1. Confirm the load-bearing set (prerequisite)
 
-- [ ] 1.1 Wait until PR #189 is merged and a Renovate PR rebased onto it has passed CI and the `renovate/artifacts` check
-- [ ] 1.2 Spike A: on a throwaway branch, remove `pluginManagement { repositories { … } }` from `settings.gradle.kts`, `core/settings.gradle.kts`, `fullstack-html/settings.gradle.kts`, `fullstack-htmx/settings.gradle.kts`; run `./gradlew help` and a plugin-classpath resolution with an emptied module cache; record pass/fail in `design.md` Open Questions
-- [ ] 1.3 Spike B: on a throwaway branch, remove `dependencyResolutionManagement { repositories { … } }` from `core/settings.gradle.kts`, `fullstack-html/settings.gradle.kts`, `fullstack-htmx/settings.gradle.kts`; run `./gradlew check` (including `:core:lib:jooqCodegen`) with an emptied module cache; record pass/fail
-- [ ] 1.4 Resolve the design Open Questions: `build-logic` as a fifth consumer (yes/no), infra `pluginManagement.repositories` option 3a vs 3b, merge with `foojay-resolver` plugin (yes/no)
+- [x] 1.1 Wait until PR #189 is merged and a Renovate PR rebased onto it has passed CI and the `renovate/artifacts` check
+- [x] 1.2 Spike A: remove `pluginManagement { repositories { … } }` from `settings.gradle.kts`, `core/settings.gradle.kts`, `fullstack-html/settings.gradle.kts`, `fullstack-htmx/settings.gradle.kts`; `--refresh-dependencies` compile + `buildEnvironment` — PASS, vestigial (see design.md Spike Results)
+- [x] 1.3 Spike B: remove `dependencyResolutionManagement { repositories { … } }` from `core/settings.gradle.kts`, `fullstack-html/settings.gradle.kts`, `fullstack-htmx/settings.gradle.kts`; `--refresh-dependencies` resolution incl. `:core:lib:jooqCodegen` — PASS, vestigial; two pre-existing failures reproduced on clean `main` (see design.md Spike Results)
+- [ ] 1.4 Resolve the remaining design Open Questions (spikes answered the first two): `build-logic` as a fifth consumer (yes/no), infra `pluginManagement.repositories` option 3a vs 3b, merge with `foojay-resolver` plugin (yes/no)
 
 ## 2. Delete vestigial blocks (PR 1)
 
-- [ ] 2.1 Remove the blocks Spike A proved vestigial
-- [ ] 2.2 Remove the blocks Spike B proved vestigial
+Spikes proved all seven blocks vestigial: `pluginManagement.repositories` in root / `core` / `fullstack-html` / `fullstack-htmx`, and `dependencyResolutionManagement.repositories` in `core` / `fullstack-html` / `fullstack-htmx`.
+
+- [ ] 2.1 Remove `pluginManagement { repositories { … } }` from `settings.gradle.kts`, `core/settings.gradle.kts`, `fullstack-html/settings.gradle.kts`, `fullstack-htmx/settings.gradle.kts` (keep the `includeBuild` lines)
+- [ ] 2.2 Remove `dependencyResolutionManagement { repositories { … } }` from `core/settings.gradle.kts`, `fullstack-html/settings.gradle.kts`, `fullstack-htmx/settings.gradle.kts`
 - [ ] 2.3 `./gradlew spotlessApply` then `./gradlew check --parallel --build-cache --configuration-cache`
 - [ ] 2.4 Open PR; let a Renovate PR rebase onto it and confirm green before merge; the diff must be a clean revert if CI or Renovate 429s
 

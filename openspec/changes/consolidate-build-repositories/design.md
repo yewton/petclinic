@@ -117,10 +117,37 @@ Code comments drift. The `artifact-resolution` capability spec states the invari
 6. PR 4: `artifact-resolution` spec + `CLAUDE.md` trim.
 7. Rollback: each PR is independently revertible; PR 1 is the only one with 429-regression risk and is a one-commit revert.
 
+## Spike Results
+
+Run locally against `main` at `f1e4fa71e8` (after #186, #187, #189, #190 merged), Gradle 9.7.1, with `--refresh-dependencies` to force repository consultation.
+
+### Spike A — `pluginManagement.repositories` in root / `core` / `fullstack-html` / `fullstack-htmx`: **VESTIGIAL**
+
+Emptied the `repositories { }` block (kept `includeBuild` lines) in all four settings files. An empty block means zero repositories, not the `gradlePluginPortal()` default — any plugin needing download would fail hard.
+
+- `./gradlew help` — pass (root `plugins { id("net.yewton.petclinic.foojay-resolver") }` resolves via `includeBuild`).
+- `./gradlew :core:lib:compileKotlin :fullstack-html:app:compileKotlin :fullstack-htmx:app:compileKotlin :core:lib:buildEnvironment :fullstack-htmx:app:buildEnvironment --refresh-dependencies` — pass. `buildEnvironment` showed the plugin/buildscript classpaths (`kotlin-gradle-plugin-api`, `kotlin-allopen`, jOOQ) resolving entirely through `project ':build-logic:*'` / `project ':build-logic-settings'` substitutions, never a repository.
+
+Conclusion: every plugin these four builds use arrives via `includeBuild` substitution. Their `pluginManagement.repositories` blocks can be deleted outright.
+
+### Spike B — `dependencyResolutionManagement.repositories` in `core` / `fullstack-html` / `fullstack-htmx`: **VESTIGIAL**
+
+Removed the whole `dependencyResolutionManagement { repositories { … } }` block from the three build settings.
+
+- `./gradlew :core:lib:jooqCodegen :core:lib:dependencies :core:lib:compileTestKotlin :fullstack-htmx:app:dependencies :fullstack-htmx:app:compileTestKotlin :fullstack-html:app:dependencies --refresh-dependencies` — the resolution paths all succeeded (`jooqCodegen` classpath, `runtimeClasspath`, test classpath, and Kotlin's detached build-tools configs all downloaded `from repository Maven Central Mirror` / `MavenRepo`, i.e. the repositories declared by `net.yewton.petclinic.commons` at project level).
+- The run reported two failures, both **reproduced identically on unmodified `main`** with the same command:
+  1. `java.nio.file.FileAlreadyExistsException` under `build/reports/dependency-verification/at-*/` — a Gradle race when several `dependencies` (`software-reporting-tasks`) tasks run in parallel and share the verification-report directory. Disappears when the `dependencies` tasks are run one at a time.
+  2. `kotlin-build-tools-impl:2.4.20` fails dependency verification — the Kotlin plugin resolves the build-tools implementation through a detached configuration with a floating selector; `2.4.20` final was released after the `2.4.20-RC3` recorded in `gradle/verification-metadata.xml`, and `--refresh-dependencies` picks it up. A normal build uses the cached RC3 and passes. **This is a pre-existing latent issue on `main`, independent of this change** (see Open Questions).
+
+Conclusion: `RepositoriesMode.PREFER_PROJECT` (the default) makes `commons`' project-level `repositories` authoritative for every project in these builds; the settings-level block is never consulted and can be deleted.
+
+### Combined
+
+Spike A + Spike B applied together (all seven blocks removed at once) produced no failure beyond the two pre-existing ones above. PR 1 can delete all seven in one change.
+
 ## Open Questions
 
-- Does Spike A pass, or is `pluginManagement.repositories` in the application/root settings actually consulted for something (e.g. a detached configuration, `buildSrc`-style path)?
-- Does Spike B pass, or does some configuration in `core`/`fullstack-*` (jOOQ codegen classpath, test fixtures) resolve through settings `dependencyResolutionManagement` rather than `commons`?
+- **Pre-existing, surfaced by Spike B**: `kotlin-build-tools-impl:2.4.20` is not in `gradle/verification-metadata.xml` (only `2.4.20-RC3` is). Any `--refresh-dependencies` run on `main` fails verification today. Track separately from this change — likely a Kotlin version bump or a metadata regen; confirm whether CI's non-`--refresh-dependencies` runs stay green.
 - Include `build-logic` as a fifth consumer of `net.yewton.petclinic.repositories` for its `dependencyResolutionManagement`, or leave it inline with `lint-logic`/`build-logic-settings`?
 - Option 3a or 3b for the infra `pluginManagement.repositories`?
 - Should `net.yewton.petclinic.foojay-resolver` and `net.yewton.petclinic.repositories` be merged into one `net.yewton.petclinic.settings` plugin (the name #183 proposed), or kept separate for single responsibility?
