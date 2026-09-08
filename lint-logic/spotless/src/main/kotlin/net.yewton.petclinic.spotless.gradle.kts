@@ -4,12 +4,13 @@ plugins {
   id("com.diffplug.spotless")
 }
 
-val editorConfigPath = listOf(
-  rootDir.parentFile,
-  rootDir,
-  projectDir
-).map { it.toPath().resolve(".editorconfig") }
-  .firstOrNull { it.toFile().exists() }
+val editorConfigPath =
+  listOf(
+    rootDir.parentFile,
+    rootDir,
+    projectDir,
+  ).map { it.toPath().resolve(".editorconfig") }
+    .firstOrNull { it.toFile().exists() }
 
 tasks.withType<SpotlessTask>().configureEach {
   val msg = "editorconfig = ${editorConfigPath?.toFile()?.absolutePath}"
@@ -32,6 +33,7 @@ spotless {
     }
   }
   kotlinGradle {
+    target("*.gradle.kts", "gradle/*.settings.gradle.kts")
     targetExclude("**/build/**/*.kts")
     ktlint().setEditorConfigPath(editorConfigPath)
   }

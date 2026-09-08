@@ -1,8 +1,8 @@
-apply(from = file("../gradle/repositories.settings.gradle.kts"))
-
 pluginManagement {
   includeBuild("../lint-logic")
 }
+
+apply(from = file("../gradle/repositories.settings.gradle.kts"))
 
 includeBuild("../platforms")
 
