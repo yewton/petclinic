@@ -18,6 +18,10 @@ kotlin {
 }
 
 repositories {
+  // Counterpart: gradle/repositories.settings.gradle.kts declares the same mirror-first list at *settings*
+  // level (pluginManagement + dependencyResolutionManagement) for all seven settings.gradle.kts. Different
+  // mechanism; keep the mirror endpoint and the mirror-first ordering aligned across both. See CLAUDE.md
+  // "Maven リポジトリ".
   // Google-hosted Maven Central mirror, consulted first to avoid shared-IP HTTP 429s
   // from repo.maven.apache.org during CI and Renovate metadata regeneration.
   maven("https://maven-central.storage-download.googleapis.com/maven2/") {

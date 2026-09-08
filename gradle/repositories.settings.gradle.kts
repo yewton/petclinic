@@ -3,6 +3,11 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 // Google-hosted Maven Central endpoint shared by repository declarations and the ordering guard.
 val mavenCentralMirrorUrl = "https://maven-central.storage-download.googleapis.com/maven2/"
 
+// Counterpart: build-logic/commons/src/main/kotlin/net.yewton.petclinic.commons.gradle.kts declares the
+// same mirror-first list at *project* level for projects that apply net.yewton.petclinic.commons. Different
+// mechanism, and its fallback omits gradlePluginPortal() on purpose — but keep the mirror endpoint and the
+// mirror-first ordering aligned across both; they almost always change together. See CLAUDE.md "Maven リポジトリ".
+
 pluginManagement {
   repositories {
     // Google-hosted Maven Central mirror, consulted first: it avoids the shared-IP HTTP 429s
