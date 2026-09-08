@@ -91,6 +91,10 @@ references/                        — git submodules; spring-petclinic is the r
 
 ルート `settings.gradle.kts` は `core`、`fullstack-html`、`fullstack-htmx` を `includeBuild` で取り込む。各アプリの `settings.gradle.kts` も `includeBuild("../core")` を宣言し、`implementation("net.yewton.petclinic:lib")` で core を参照する (Gradle が composite build の dependency substitution を行う)。
 
+### Maven リポジトリ
+
+すべての `repositories` ブロックは Google がホストする Maven Central ミラー (`https://maven-central.storage-download.googleapis.com/maven2/`) を `mavenCentral()` / `gradlePluginPortal()` より先に引く。CI ランナーと Renovate のクラウドランナーは共有 IP のため `repo.maven.apache.org` から HTTP 429 を受けやすく、特に Renovate の検証メタデータ再生成 (`--write-verification-metadata`) がキャッシュを迂回して大量リクエストを投げるところで顕在化する。Gradle は 429 を受けたリポジトリをその場で無効化してフォールバックしないため、レート制限を受けるリポジトリを先頭に置けない。依存関係検証は成果物の SHA-256 で行うため取得元がミラーでも安全性は変わらない。
+
 ### Domain packages
 Each domain package (`owner`, `pet`, `visit`, `vet`) follows the same pattern:
 - **Entity** — data class (e.g. `Owner.kt`)
