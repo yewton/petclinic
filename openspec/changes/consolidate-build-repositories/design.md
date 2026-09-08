@@ -15,7 +15,7 @@ Layer 5  root aggregator          → all of the above
 
 `build-logic-settings` was split out from `build-logic` in #177/#179 because Gradle recommends a dedicated, minimal included build for settings plugins (a settings plugin in a general `build-logic` degrades build-cacheability). `lint-logic` is separate because `build-logic` and `build-logic-settings` both depend on it for Spotless formatting.
 
-The HTTP 429 mitigation (#186, #189) copied a Google-hosted Maven Central mirror snippet into every `repositories` block: `pluginManagement.repositories` in root / `core` / `fullstack-html` / `fullstack-htmx` / `lint-logic` / `build-logic` / `build-logic-settings`, `dependencyResolutionManagement.repositories` in `core` / `fullstack-html` / `fullstack-htmx` / `lint-logic` / `build-logic` / `build-logic-settings`, and the project-level `repositories {}` in `net.yewton.petclinic.commons`. Fourteen occurrences of the same ~8-line block.
+The HTTP 429 mitigation (#186, #189) copied a Google-hosted Maven Central mirror `repositories` block into fourteen places — `pluginManagement.repositories` in root / `core` / `fullstack-html` / `fullstack-htmx` / `lint-logic` / `build-logic` / `build-logic-settings`, `dependencyResolutionManagement.repositories` in `core` / `fullstack-html` / `fullstack-htmx` / `lint-logic` / `build-logic` / `build-logic-settings`, and the project-level `repositories {}` in `net.yewton.petclinic.commons`. The blocks are not byte-identical: they have **two fallback variants**. The mirror line is the same everywhere, but the second repository is `gradlePluginPortal()` in all seven `pluginManagement` blocks and in the three infra `dependencyResolutionManagement` blocks, and `mavenCentral()` in the `core` / `fullstack-*` `dependencyResolutionManagement` blocks and in `commons`. So the copies have already drifted.
 
 ### How artifacts actually resolve (verified)
 
@@ -54,7 +54,7 @@ gradlePluginPortal() serves:         sha256 5c3bde6e…   (portal-generated copy
 **Non-Goals:**
 
 - **Deleting any repository block.** The audit (Decision 1) falsified the earlier assumption that the application-build blocks were vestigial.
-- **A settings convention plugin for repositories** or `RepositoriesMode.FAIL_ON_PROJECT_REPOS`. A precompiled settings plugin runs after the `plugins {}` block, so it cannot configure `pluginManagement.repositories` — the block the marker checksum and the 429 both depend on. It could only centralize `dependencyResolutionManagement.repositories`, and `lint-logic` / `build-logic-settings` could not apply it without a `build-logic-settings → lint-logic` cycle. `apply(from = ...)` of a shared settings script *can* carry `pluginManagement.repositories` (verified on Gradle 9.7.1), so that is the mechanism (Decision 3).
+- **A settings convention plugin for repositories** or `RepositoriesMode.FAIL_ON_PROJECT_REPOS`. A precompiled settings plugin runs after the `plugins {}` block, so it cannot configure `pluginManagement.repositories` — the block the marker checksum and the 429 both depend on. It could only centralize `dependencyResolutionManagement.repositories`, and `lint-logic` / `build-logic-settings` could not apply it without a `build-logic-settings → lint-logic` cycle. `apply(from = ...)` of a shared settings script *can* carry `pluginManagement.repositories` (a `/tmp` spike resolved a plugin marker from repos declared by an applied script; PR B confirms it in the real build), so that is the mechanism (Decision 3).
 - **`verify-metadata=false` + PGP signatures** (the model `gradle/gradle` itself uses, which would remove the marker-POM checksum sensitivity). Removing strict checksum verification was proposed in #168 and rejected; it is a supply-chain posture decision, out of scope here.
 - **Consolidating `lint-logic` / `build-logic` / `build-logic-settings` into one build.** The canonical large-build structure (`jjohannes/gradle-project-setup-howto`) uses one `gradle/plugins` build, which would remove two infra `settings.gradle.kts` — but `build-logic-settings` was deliberately split for build-cacheability in #177/#179, and `gradle/gradle` keeps the same split for the same reason.
 - Touching `libs/**` (outside the composite build, Renovate-ignored) or `renovate.json` `hostRules` (independent throttling, already in place).
@@ -92,42 +92,48 @@ Surveyed the settings layout of seven notable Gradle projects:
 Conclusions:
 
 - **No project fully centralizes the base `mavenCentral()` / `gradlePluginPortal()` declarations.** Every one inlines them per settings file. The structurally closest analog, **detekt**, inline-duplicates the whole `dependencyResolutionManagement { FAIL_ON_PROJECT_REPOS; repositories { … } }` block across three settings files with "keep in sync" comments and considers that acceptable.
-- The shared-script mechanisms (`apply(from = ...)`, `evaluate().apply(this)`, a shared function) are used only for the **non-base layer**: CI mirror rewriting (Gradle), Spring snapshot repos (Spring), prebuilts (AndroidX). PetClinic's mirror *is* the base layer, so its shared file will carry more than those precedents do — but the packaging pattern is identical.
-- **`gradle/gradle` is the one project with PetClinic's exact structure** (dedicated `build-logic-settings` split for the same build-cache reason) and the same class of concern. It accepts inline base-repo duplication and shares only the mirror layer via `apply(from = "…/mirrors.settings.gradle.kts")`.
+- The shared-script mechanisms (`apply(from = ...)`, `evaluate().apply(this)`, a shared function) are used only for the **non-base layer**: CI mirror rewriting (Gradle), Spring snapshot repos (Spring), prebuilts (AndroidX). Those layers are additive and fail-safe — a missed application means the extra repos are absent, not that resolution has no repositories. PetClinic's mirror *is* the base layer and is load-bearing, so its shared file borrows only the *packaging* (a settings script pulled in with `apply(from = ...)` and per-location relative paths), not the fail-safe property. That gap is what the `settingsEvaluated` guard covers.
+- **`gradle/gradle` is the one project with PetClinic's exact structure** (dedicated `build-logic-settings` split for the same build-cache reason) and the same class of concern. It still inlines `mavenCentral()` / `gradlePluginPortal()` in every settings file and shares only the mirror-URL-rewriting layer via `apply(from = "…/mirrors.settings.gradle.kts")` — and its rewriter is CI-gated and fail-safe. So `gradle/gradle` is precedent for the *packaging*, not for making the base repository list load-bearing on a shared script.
 - PetClinic feels the marker-POM checksum problem that the others do not, because it runs `verify-metadata=true` (stricter than `gradle/gradle`'s own build) with no PGP, plus marker-based Kotlin plugins (#195), plus the composite-build split.
 
 ### Decision 3: shared `gradle/repositories.settings.gradle.kts` applied with `apply(from = ...)`
 
-Add one file, `gradle/repositories.settings.gradle.kts`, declaring both blocks with the mirror first:
+Add one file, `gradle/repositories.settings.gradle.kts`, declaring both blocks with the mirror first. The fallback list is unified to the order-preserving union of the two drifted variants — mirror, then `mavenCentral()`, then `gradlePluginPortal()`:
 
 ```
 pluginManagement {
   repositories {
-    <mirror>            // GCS Maven Central mirror, mavenContent { releasesOnly() }
+    <mirror>            // GCS Maven Central mirror; mavenContent { releasesOnly() }
+    mavenCentral()
     gradlePluginPortal()
   }
 }
 dependencyResolutionManagement {
   repositories {
     <mirror>
+    mavenCentral()
     gradlePluginPortal()
   }
 }
 ```
 
-Replace the inline repository blocks in all seven settings files with `apply(from = file("<rel>/gradle/repositories.settings.gradle.kts"))` — `gradle/…` from the root, `../gradle/…` from the six nested builds. The inline `pluginManagement {}` blocks keep only their `includeBuild(...)` lines, so the shared file is the sole source of repositories and the mirror is unambiguously first regardless of where `apply` sits.
+Adding `mavenCentral()` before `gradlePluginPortal()` in `pluginManagement` is a safety improvement: if the mirror ever lags a marker POM, the next repository consulted is the Maven Central copy (matching the recorded checksum) rather than the portal-generated copy (different bytes → verification failure). Adding `gradlePluginPortal()` to the `core` / `fullstack-*` `dependencyResolutionManagement` is inert — everything that resolves there (`ktlint-cli` and its transitives) is a Maven Central artifact served by the mirror. The unification MUST be proven safe by regenerating `gradle/verification-metadata.xml` (`--write-verification-metadata sha256`) and confirming an empty diff — `./gradlew check` never writes that file, so a `git diff` on it after `check` proves nothing.
+
+Replace the inline repository blocks in all seven settings files with `apply(from = file("<rel>/gradle/repositories.settings.gradle.kts"))` — `gradle/…` from the root, `../gradle/…` from the six nested builds. Place the `apply` line **after** the inline `pluginManagement {}` and `plugins {}` blocks, matching `gradle/gradle` (whose `settings.gradle.kts` applies `mirrors.settings.gradle.kts` after those blocks). The `apply` position does not affect the result — the shared file's `pluginManagement.repositories` is consumed at project-configuration time, and the inline `pluginManagement {}` blocks declare no repositories — but "after" avoids relying on Gradle's syntax rule that only `buildscript` / `pluginManagement` / `plugins` may precede a `plugins {}` block, which a future Gradle could tighten.
+
+The shared file ends with a `gradle.settingsEvaluated {}` guard that fails the build if `pluginManagement.repositories` does not start with the mirror. This turns the one remaining failure mode — a future `plugins { id("some.settings.plugin") }` in a settings file resolving from an empty `pluginManagement.repositories` and silently falling back to the plugin portal — from a CI-only surprise into an immediate, local, named error. That silent portal fallback is the exact shape of every failure this issue has produced.
 
 `net.yewton.petclinic.commons`' project-level `repositories {}` is left unchanged: it is a *project* convention (applied to `core:lib` / `fullstack-*:app` / the root project) and already a single declaration. The mirror endpoint then lives in exactly two files (`gradle/repositories.settings.gradle.kts`, `commons.gradle.kts`), down from fourteen.
 
-This is `gradle/gradle`'s `mirrors.settings.gradle.kts` pattern. PetClinic *declares* a mirror repository rather than *rewriting* URLs the way Gradle does, because the GCS mirror is Central-only (portal artifacts need the `gradlePluginPortal()` fallback), which reads more clearly as a direct `repositories {}` block.
+This is `gradle/gradle`'s `gradle/shared-with-buildSrc/mirrors.settings.gradle.kts` packaging: a settings script pulled into each settings file with `apply(from = ...)` and per-location relative paths. The mechanisms differ in an important way, though — `gradle/gradle`'s script *rewrites* the URLs of already-declared repositories via a `settingsEvaluated {}` hook, is gated on the `CI` environment variable, and fails safe (a missed application just means no mirror). PetClinic's *declares* the repositories, is unconditional, and is load-bearing (a missed application means an empty `pluginManagement.repositories`). Hence the guard.
 
-Verified on Gradle 9.7.1 with strict verification active: `apply(from = ...)` before the inline `pluginManagement {}` block carries `pluginManagement.repositories`; `:spotlessKotlinGradle`, `:core:spotlessKotlinGradle`, and `help` all pass (the Kotlin marker resolves from the mirror with the recorded checksum; `:core`'s ktlint detached config resolves from the shared `dependencyResolutionManagement.repositories`).
+**To be confirmed in PR B (the implementation):** that `apply(from = ...)` carries `pluginManagement.repositories` such that the Kotlin marker POM resolves from the mirror with the recorded checksum, and that `:core:spotlessKotlinGradle`'s ktlint detached configuration resolves from the shared `dependencyResolutionManagement.repositories`. This must be checked with a full `./gradlew check` and an emptied-module-cache run — not the targeted tasks that made the spikes wrong.
 
 **Alternatives considered:**
 
-- **Accept the inline duplication** (detekt's choice), improve the `// keep in sync` comments, close #183. Fully defensible — it is the ecosystem norm and the blocks are already correct and consistent after #189. Chosen against only because PetClinic's block is ~8 lines (vs. `mavenCentral()`'s one) so the duplication is more visible, and `apply(from = ...)` is a low-risk, Gradle-blessed way to remove it.
-- **AndroidX's shared function** (`gradle/repos.gradle` exposing `addRepositories(RepositoryHandler)`, called in `pluginManagement {}` and `gradle.beforeProject {}`). More explicit than `apply(from = ...)` and could also replace `commons`' block. Rejected as more machinery than a declarative settings script for the same result.
-- **A settings convention plugin for `dependencyResolutionManagement.repositories`** (jjohannes's model). Rejected — it cannot touch `pluginManagement.repositories`, so the shared file is needed anyway; adding a plugin on top removes nothing.
+- **Accept the inline duplication** (detekt's choice — it duplicates the whole `dependencyResolutionManagement { … }` block across three settings files with `// keep in sync` comments). Fully defensible: it is the ecosystem norm, and the blocks are consistent after #189. Chosen against because the block is ~8 lines and the two-variant drift shows the "keep in sync" discipline already failed once.
+- **AndroidX's shared function** (`gradle/repos.gradle` exposing `addRepositories(RepositoryHandler)`, called *inside* `pluginManagement {}` and again in `gradle.beforeProject {}`). Because the call sits inside `pluginManagement {}` it runs in settings-script stage 1, so it does not have the timing exposure that the `settingsEvaluated` guard exists to cover, and one function could also replace `commons`' block (one declaration site instead of two). Rejected because an imperative `addRepositories(handler)` call reads poorly in Kotlin DSL and the robustness gap it closes is small once the guard is in place — but this is a genuine trade-off, not a clear loss.
+- **A settings convention plugin for `dependencyResolutionManagement.repositories`** (jjohannes's model). jjohannes's real move is putting *every* plugin, third-party included, in one `gradle/plugins` included build so that `pluginManagement.repositories` is not needed at all; the settings plugin only carries the trivial `dependencyResolutionManagement { repositories.mavenCentral() }`. PetClinic cannot adopt the first part without merging the infra builds (see Non-Goals), and a settings plugin cannot touch `pluginManagement.repositories`, so the shared file is needed regardless.
 - **`verify-metadata=false` + PGP** — removes the marker-POM sensitivity entirely. Out of scope (see Non-Goals).
 
 ### Decision 4: record the topology in the `artifact-resolution` spec and `CLAUDE.md`
@@ -136,20 +142,22 @@ Code comments drift, and the load-bearing map here is non-obvious (it took two f
 
 ## Risks / Trade-offs
 
+- **A future `plugins { id("some.settings.plugin") }` in a settings file resolves from an empty `pluginManagement.repositories` and silently uses the plugin portal** → this is the failure shape this whole issue keeps producing (invisible locally, breaks on CI/Renovate). Covered by the `gradle.settingsEvaluated {}` guard in the shared file: the build fails immediately, locally, with a message naming the offending first repository.
+- **The fallback-list unification changed a resolved artifact's source or checksum** → prove empty with `./gradlew --dependency-verification lenient -q --write-verification-metadata sha256 check --no-configuration-cache` then `git diff gradle/verification-metadata.xml`. `./gradlew check` alone does not write that file, so a `git diff` after it is not a test.
 - **A `#195`-style change later alters which plugins leak to consumers** → the spec's scenarios and the `CLAUDE.md` note name the mechanism explicitly, so the next person has a place to check. The shared file makes any needed repository change a one-file edit.
-- **`apply(from = file("<rel>/gradle/repositories.settings.gradle.kts"))` with a wrong relative path** → six of seven files use the identical `../gradle/…`; only the root differs. A smoke `./gradlew help` catches a typo immediately.
-- **`apply(from = ...)` interaction with `pluginManagement`** → verified on Gradle 9.7.1 (the two `pluginManagement {}` invocations merge; the inline one declares no repositories, so order is unambiguous).
+- **`apply(from = ...)` with a wrong relative path** → six of seven files use the identical `../gradle/…`; only the root differs. A smoke `./gradlew help` catches a typo immediately.
 - **The GCS mirror lags a brand-new release** → `mavenCentral()` / `gradlePluginPortal()` fallback covers it; Renovate's `minimumReleaseAge: "3 days"` makes the window irrelevant here.
-- **Spotless does not lint `gradle/repositories.settings.gradle.kts`** (it is under `gradle/`, not a source set) → check the Spotless `kotlinGradle` target and add `gradle/*.settings.gradle.kts` if missing, as `jjohannes` does with an explicit `target(...)`.
+- **Spotless does not lint `gradle/repositories.settings.gradle.kts`** — the `kotlinGradle` default target is the project directory's `*.gradle.kts`, non-recursive, and the new file is in a subdirectory. PR B must prove coverage by introducing a deliberate formatting violation and confirming `./gradlew :spotlessKotlinGradleCheck` fails; if it does not, add an explicit `target(...)` to the `kotlinGradle` block (which replaces the default, so the default patterns must be re-listed).
+- **`mavenContent { releasesOnly() }` on the mirror** → a future SNAPSHOT dependency bypasses the mirror and goes straight to `mavenCentral()` / `gradlePluginPortal()`. Same behaviour as the current inline blocks; noted with a comment in the shared file.
 
 ## Migration Plan
 
 1. ~~#186, #187, #189, #190 merged; Renovate re-ran past the 429 and past dependency verification.~~ Done.
 2. ~~Spike A and Spike B.~~ Done — and **falsified**; see Spike Results and Decision 1. #191 merged.
-3. **PR A (this change)**: rewrite `design.md` / `proposal.md` / `specs` / `tasks.md` to the corrected findings and the centralize-don't-delete approach.
-4. **PR B**: add `gradle/repositories.settings.gradle.kts`; replace the inline repository blocks in `settings.gradle.kts`, `core/`, `fullstack-html/`, `fullstack-htmx/`, `lint-logic/`, `build-logic/`, `build-logic-settings/` with `apply(from = ...)`; leave `commons.gradle.kts` alone; extend the Spotless target if needed. Verified with a full `./gradlew check` and an emptied-cache run — **not** targeted tasks.
-5. **PR C**: `artifact-resolution` spec + `CLAUDE.md` trim.
-6. Rollback: PR B is a single revert; PRs A and C are docs-only.
+3. **PR #197 (this change)**: rewrite `design.md` / `proposal.md` / `specs` / `tasks.md` to the corrected findings and the centralize-don't-delete approach.
+4. **PR #198**: add `gradle/repositories.settings.gradle.kts` (three-entry unified list + `settingsEvaluated` guard); replace the inline repository blocks in the seven settings files with `apply(from = ...)` placed after the `pluginManagement {}` / `plugins {}` blocks; leave `commons.gradle.kts` alone; prove and fix the Spotless target. Verified with a full `./gradlew check`, an emptied-cache run, and a `--write-verification-metadata` regeneration with an empty diff — **not** targeted tasks.
+5. **PR #200**: `CLAUDE.md` note. The `openspec archive` (promoting `specs/artifact-resolution/spec.md`) happens after all three merge.
+6. Rollback: PR #198 is a single revert; #197 and #200 are docs-only.
 
 ## Spike Results (FALSIFIED — retained for the record)
 
