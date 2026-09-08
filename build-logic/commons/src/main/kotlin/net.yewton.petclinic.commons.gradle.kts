@@ -18,6 +18,12 @@ kotlin {
 }
 
 repositories {
+  // Google-hosted Maven Central mirror, consulted first to avoid shared-IP HTTP 429s
+  // from repo.maven.apache.org during CI and Renovate metadata regeneration.
+  maven("https://maven-central.storage-download.googleapis.com/maven2/") {
+    name = "Maven Central Mirror"
+    mavenContent { releasesOnly() }
+  }
   mavenCentral()
 }
 
