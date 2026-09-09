@@ -1,8 +1,0 @@
-{
-  "$schema": "https://likec4.dev/schemas/config.json",
-  "name": "fullstack-html",
-  "title": "PetClinic HTML application",
-  "include": {
-    "paths": ["../shared"]
-  }
-}

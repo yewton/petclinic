@@ -1,0 +1,75 @@
+// C4 model vocabulary for PetClinic.
+//
+// The element kinds follow the C4 ladder: person -> softwareSystem -> container
+// -> component. `database` and `library` are container specialisations; they
+// exist only to carry a distinct shape and colour. In C4 terms a data store and
+// a shared library that both applications compile against are still containers.
+// Individual classes (controllers, repositories, entities) are the Code level
+// and are intentionally out of scope.
+
+specification {
+  element person {
+    style {
+      shape person
+      color green
+    }
+  }
+  element softwareSystem {
+    style {
+      color primary
+    }
+  }
+  element container {
+    style {
+      color secondary
+    }
+  }
+  element database {
+    style {
+      shape cylinder
+      color amber
+    }
+  }
+  element library {
+    style {
+      shape component
+      color indigo
+    }
+  }
+  element component {
+    style {
+      shape component
+      color muted
+    }
+  }
+
+  relationship uses
+  relationship http {
+    technology 'HTTPS'
+  }
+  relationship persistence {
+    technology 'jOOQ over R2DBC'
+  }
+  relationship otlp {
+    technology 'OTLP'
+    line dotted
+    color red
+  }
+  relationship telemetry {
+    line dotted
+    color red
+  }
+  relationship correspondence {
+    line dotted
+    color green
+  }
+
+  tag shared
+  tag parallel-implementation
+  tag fullstack-html {
+    color #4C78A8
+  }
+  tag fullstack-htmx {
+    color #F58518
+  }
+}

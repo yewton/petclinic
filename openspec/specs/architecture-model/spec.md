@@ -1,13 +1,15 @@
 # architecture-model Specification
 
 ## Purpose
-TBD - created by archiving change add-likec4-architecture-model. Update Purpose after archive.
+PetClinic のリポジトリ構造を C4 モデルとして LikeC4 で記述し、エージェントと人間が参照できる単一の情報源として維持する。CI で構文を検証し、構造変更時にエージェントがモデルを追従更新する運用を定める。
 ## Requirements
 ### Requirement: アーキテクチャモデルの記述
 
 リポジトリの構造は `architecture/` 配下の LikeC4 DSL で記述され、エージェントと人間が参照できる単一の情報源として維持される SHALL。
 
-モデルは composite build (`core` / `fullstack-html` / `fullstack-htmx`)、それらの依存方向、ドメインパッケージ、外部システム (PostgreSQL、Grafana スタック)、および観測性のパイプラインを含む SHALL。3 つの project model を import する `aggregate` project が system-level aggregate relation と全体 view の単一 owner である SHALL。Controller や Repository といったクラス単位の要素は含まない SHALL NOT。
+モデルは単一の LikeC4 project で C4 モデルの梯子 (person → software system → container → component) に従う SHALL。`petclinic` software system は、2 つのアプリケーション container (`fullstack-html` / `fullstack-htmx`)、data store container (PostgreSQL)、共有ライブラリ container (`core`) を含み、`core` 配下に各ドメインの component を持つ SHALL。両アプリケーションが `core` に依存し互いを参照しないこと、両者が機能同等の並行実装であること、外部の Grafana observability stack と OTLP パイプラインも含む SHALL。個々のクラス (Controller、Repository、エンティティ) は Code レベルとして含まない SHALL NOT。
+
+ビュー階層は C4 の標準セット (System Context、Container、Component) を含む SHALL。
 
 #### Scenario: 並行実装の対応関係がモデルから読み取れる
 
@@ -24,10 +26,10 @@ TBD - created by archiving change add-likec4-architecture-model. Update Purpose 
 - **WHEN** エージェントまたは開発者がモデルを参照する
 - **THEN** アプリケーションから OTLP で Alloy へ、Alloy から Tempo / Loki / Mimir へ、Grafana がそれらを参照する経路が一つのビューで表現されている
 
-#### Scenario: aggregate view に必要な関係が存在する
+#### Scenario: C4 の標準ビューに必要な関係が存在する
 
 - **WHEN** 開発者が `likec4 export json architecture` の結果を確認する
-- **THEN** aggregate の system-context、composite-build-dependencies、observability-pipeline、correspondence view に期待する関係があり、HTMX の correspondence view にも app-to-app 関係がある
+- **THEN** System Context、Container、各アプリケーションと `core` の Component view、および observability / 並行実装 / composite build 依存の補助 view に、孤立ノードなく期待する関係がある
 
 ### Requirement: モデルの構文検証
 
@@ -49,7 +51,7 @@ TBD - created by archiving change add-likec4-architecture-model. Update Purpose 
 
 #### Scenario: 構造の変更に伴いモデルが更新される
 
-- **WHEN** エージェントが composite build の追加、依存方向の変更、外部システムの追加・削除、またはドメインパッケージの増減を伴う実装を行う
+- **WHEN** エージェントが container の追加、container 間の依存方向の変更、外部 software system の追加・削除、または `core` の domain component の増減を伴う実装を行う
 - **THEN** エージェントは対応する `.c4` ファイルを更新する
 
 #### Scenario: 構造を変えない変更ではモデルが更新されない

@@ -1,0 +1,26 @@
+// Supplementary views — not part of the C4 ladder
+
+views {
+  // How telemetry flows from both applications into the Grafana stack.
+  view observability {
+    title 'Observability pipeline'
+    include petclinic.htmlApp, petclinic.htmxApp
+    include grafana, grafana.*
+    exclude petclinic.htmlApp -> petclinic.htmxApp
+  }
+
+  // fullstack-html and fullstack-htmx are equivalent parallel implementations.
+  // The correspondence relation records feature equivalence, not a dependency.
+  view parallelImplementation {
+    title 'Parallel implementations — HTML and HTMX'
+    include petclinic.htmlApp, petclinic.htmxApp
+  }
+
+  // Composite build dependencies: both applications build against core; neither
+  // depends on the other.
+  view buildStructure {
+    title 'Composite build dependencies'
+    include petclinic.core, petclinic.htmlApp, petclinic.htmxApp
+    exclude petclinic.htmlApp -> petclinic.htmxApp
+  }
+}

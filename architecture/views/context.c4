@@ -1,0 +1,8 @@
+// C4 level 1 — System Context
+
+views {
+  view index {
+    title 'PetClinic — System Context'
+    include petOwner, petclinic, grafana
+  }
+}

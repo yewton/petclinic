@@ -1,0 +1,22 @@
+// C4 level 3 — Components
+
+views {
+  view htmlComponents of petclinic.htmlApp {
+    title 'PetClinic HTML — Components'
+    include *
+    include petclinic.core, petclinic.core.*
+  }
+
+  view htmxComponents of petclinic.htmxApp {
+    title 'PetClinic HTMX — Components'
+    include *
+    include petclinic.core, petclinic.core.*
+  }
+
+  view coreComponents of petclinic.core {
+    title 'PetClinic Core — Components'
+    include *
+    include petclinic.db
+    exclude petclinic.htmlApp, petclinic.htmxApp
+  }
+}

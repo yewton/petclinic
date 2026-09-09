@@ -1,8 +1,0 @@
-{
-  "$schema": "https://likec4.dev/schemas/config.json",
-  "name": "fullstack-htmx",
-  "title": "PetClinic HTMX application",
-  "include": {
-    "paths": ["../shared"]
-  }
-}

@@ -21,7 +21,7 @@
 - `fullstack-html/`: Thymeleaf によるプレーンHTML版アプリケーションの composite build
 - `fullstack-htmx/`: HTMX による部分レンダリング版アプリケーションの composite build
 - `build-logic/` & `lint-logic/`: ビルド・共通設定
-- `architecture/`: composite build、外部システム、ドメインパッケージを表す LikeC4 モデル
+- `architecture/`: PetClinic を C4 モデル（softwareSystem → container → component）で表す LikeC4 project
 - `references/`: 参照用リポジトリ群。外部の参考実装を submodule として配置しています。
   - `references/spring-petclinic`: 本プロジェクトのベースとなっている参照実装です。不足している機能の特定や、実装の参考にしてください。
 
@@ -30,7 +30,7 @@
 2. 実装後、`./gradlew spotlessApply` でコードを整える。
 3. `./gradlew check` で全てのテストとチェックをパスすることを確認する。
 
-`architecture/` は composite build の増減・依存方向の変更・外部システムの変更・ドメインパッケージの増減に合わせて更新する。Controller、Repository、エンティティ、テンプレートのみの変更では更新しない。詳細は `architecture-model` スキルを参照する。
+`architecture/` は container の増減・依存方向の変更・外部 software system の変更・core の domain component の増減に合わせて更新する。Controller、Repository、エンティティ、テンプレートのみの変更では更新しない。詳細は `architecture-model` スキルを参照する。
 
 ## APM によるエージェント設定管理
 

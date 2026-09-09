@@ -1,8 +1,0 @@
-{
-  "$schema": "https://likec4.dev/schemas/config.json",
-  "name": "aggregate",
-  "title": "PetClinic architecture aggregate",
-  "include": {
-    "paths": ["../shared"]
-  }
-}
