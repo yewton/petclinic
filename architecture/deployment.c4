@@ -1,0 +1,49 @@
+// Gradle composite build の構造。
+//
+// 各 buildUnit がルートの settings.gradle.kts から `includeBuild` される独立した
+// ビルド単位に対応する。実行時の container のうち core / htmlApp / htmxApp は
+// それぞれ独立したビルドでもあり、`instanceOf` で対応づけている。
+// build-logic 系・lint-logic・platforms は実行時の要素を持たないビルド専用の単位。
+
+deployment {
+  toolchain = buildUnit 'ビルドロジック（共有ビルド）' {
+    platforms = buildUnit 'platforms' {
+      description 'バージョンカタログ（libs.versions.toml）と platform BOM'
+    }
+    lintLogic = buildUnit 'lint-logic' {
+      description 'Spotless / ktlint 設定'
+    }
+    buildLogic = buildUnit 'build-logic' {
+      description 'プロジェクト用 convention plugin（dependency-management / spring-boot / jooq-codegen ほか）'
+    }
+    buildLogicSettings = buildUnit 'build-logic-settings' {
+      description 'settings 用 convention plugin（foojay-resolver ほか）'
+    }
+
+    lintLogic -[includeBuild]-> platforms
+    buildLogic -[includeBuild]-> lintLogic
+    buildLogic -[includeBuild]-> platforms
+    buildLogicSettings -[includeBuild]-> lintLogic
+    buildLogicSettings -[includeBuild]-> platforms
+  }
+
+  coreBuild = buildUnit 'core' {
+    description '共有ライブラリ lib を発行する composite build'
+    instanceOf petclinic.core
+  }
+  htmlBuild = buildUnit 'fullstack-html' {
+    description 'プレーン HTML 版アプリケーションの composite build'
+    instanceOf petclinic.htmlApp
+  }
+  htmxBuild = buildUnit 'fullstack-htmx' {
+    description 'HTMX 版アプリケーションの composite build'
+    instanceOf petclinic.htmxApp
+  }
+
+  coreBuild -[includeBuild]-> toolchain 'convention plugin とカタログを取り込む'
+  htmlBuild -[includeBuild]-> toolchain 'convention plugin とカタログを取り込む'
+  htmxBuild -[includeBuild]-> toolchain 'convention plugin とカタログを取り込む'
+
+  htmlBuild -[includeBuild]-> coreBuild 'includeBuild("../core") で net.yewton.petclinic:lib を dependency substitution'
+  htmxBuild -[includeBuild]-> coreBuild 'includeBuild("../core") で net.yewton.petclinic:lib を dependency substitution'
+}

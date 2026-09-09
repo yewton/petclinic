@@ -30,7 +30,7 @@
 2. 実装後、`./gradlew spotlessApply` でコードを整える。
 3. `./gradlew check` で全てのテストとチェックをパスすることを確認する。
 
-`architecture/` は container の増減・依存方向の変更・外部 software system の変更・core の domain component の増減に合わせて更新する。Controller、Repository、エンティティ、テンプレートのみの変更では更新しない。詳細は `architecture-model` スキルを参照する。
+`architecture/` は container の増減・依存方向の変更・外部 software system の変更・core の domain component の増減・composite build 構成の変更（`deployment.c4`）に合わせて更新する。Controller、Repository、エンティティ、テンプレートのみの変更では更新しない。詳細は `architecture-model` スキルを参照する。
 
 ## APM によるエージェント設定管理
 

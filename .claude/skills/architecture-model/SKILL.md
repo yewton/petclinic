@@ -1,6 +1,6 @@
 ---
 name: architecture-model
-description: PetClinic の container 構成、外部システム、core のドメイン component を変更するときに LikeC4 アーキテクチャモデルを更新する手順。
+description: PetClinic の container 構成、外部システム、core のドメイン component、composite build 構成を変更するときに LikeC4 アーキテクチャモデルを更新する手順。
 ---
 
 # アーキテクチャモデルの更新
@@ -13,6 +13,9 @@ description: PetClinic の container 構成、外部システム、core のド�
 - container 間の依存方向の変更
 - 外部 software system または observability container の追加・削除
 - `core` のドメイン component の追加・削除
+- composite build（`includeBuild` されるビルド単位）の増減、または build 間の `includeBuild` 依存の変更 → `architecture/deployment.c4`
+
+説明文（`description` と関係ラベル）は日本語で書く。
 
 次の変更だけではモデルを更新しない。
 
@@ -32,10 +35,12 @@ description: PetClinic の container 構成、外部システム、core のド�
 - `architecture/likec4.config.json`: project 定義
 - `architecture/specification.c4`: 要素種別・関係種別・タグ・視覚スタイル
 - `architecture/model.c4`: モデルツリー（`petOwner`、外部 `grafana`、`petclinic` software system とその container・component）
+- `architecture/deployment.c4`: Gradle composite build の topology。各 `buildUnit` が `includeBuild` される独立したビルド単位。実行時 container の `core` / `htmlApp` / `htmxApp` は `instanceOf` で対応づける
 - `architecture/views/context.c4`: System Context（C4 L1）
 - `architecture/views/containers.c4`: Container（C4 L2）
 - `architecture/views/components.c4`: Component（C4 L3。html / htmx / core）
-- `architecture/views/supplementary.c4`: observability パイプライン、並行実装の correspondence、composite build 依存
+- `architecture/views/supplementary.c4`: observability パイプライン、並行実装の correspondence
+- `architecture/views/build.c4`: `buildStructure` deployment view（composite build 構造）
 
 `core` は C4 では共有ライブラリなので厳密には container ではないが、両アプリがコンパイル時に依存する独立したビルド単位なので `library` 種別（container の特化）として `petclinic` 内に置く。PostgreSQL は `db`（`database` 種別）で、`core -[persistence]-> db` を描く。両アプリから DB への直接エッジは張らない。
 
@@ -45,7 +50,7 @@ description: PetClinic の container 構成、外部システム、core のド�
 npx --no-install likec4 validate --json --no-layout architecture
 ```
 
-`--no-layout` は CI の責務を DSL の構文・意味検証に限定するために付ける。レイアウトは Graphviz/wasm と実行環境に依存し、座標を成果物として管理していないため、レイアウト差分を CI の失敗条件にしない。見た目は `npx --no-install likec4 start architecture` で開発サーバーを起動し、`index`（System Context）、`containers`、`htmlComponents` / `htmxComponents` / `coreComponents`、`observability` / `parallelImplementation` / `buildStructure` の各 view に孤立ノードや欠けたエッジがないことをブラウザで確認する。
+`--no-layout` は CI の責務を DSL の構文・意味検証に限定するために付ける。レイアウトは Graphviz/wasm と実行環境に依存し、座標を成果物として管理していないため、レイアウト差分を CI の失敗条件にしない。見た目は `npx --no-install likec4 start architecture` で開発サーバーを起動し、`index`（System Context）、`containers`、`htmlComponents` / `htmxComponents` / `coreComponents`、`observability` / `parallelImplementation`、`buildStructure`（composite build）の各 view に孤立ノードや欠けたエッジがないことをブラウザで確認する。
 
 MCP は repository root を current working directory として起動する Claude Code / Codex の stdio 設定を対象にする。`.mcp.json` はクライアント固有の `${workspaceFolder}` 展開に依存せず、相対ワークスペース `architecture` とローカル npm パッケージを使う。手動の起動確認は次のコマンドで行う。
 

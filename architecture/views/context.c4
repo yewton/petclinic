@@ -1,8 +1,8 @@
-// C4 level 1 — System Context
+// C4 レベル 1 — System Context
 
 views {
   view index {
-    title 'PetClinic — System Context'
+    title 'PetClinic — システムコンテキスト'
     include petOwner, petclinic, grafana
   }
 }

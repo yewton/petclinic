@@ -1,8 +1,8 @@
-// C4 level 2 — Containers
+// C4 レベル 2 — Container
 
 views {
   view containers of petclinic {
-    title 'PetClinic — Containers'
+    title 'PetClinic — コンテナ'
     include petOwner
     include *
     include grafana

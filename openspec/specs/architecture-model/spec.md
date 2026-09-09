@@ -11,6 +11,10 @@ PetClinic のリポジトリ構造を C4 モデルとして LikeC4 で記述し�
 
 ビュー階層は C4 の標準セット (System Context、Container、Component) を含む SHALL。
 
+モデルは deployment model で Gradle composite build の構造を表す SHALL。`includeBuild` される各ビルド単位 (`core` / `fullstack-html` / `fullstack-htmx` / `platforms` / `lint-logic` / `build-logic` / `build-logic-settings`) と、ビルド単位間の `includeBuild` 依存を含み、専用の deployment view で可視化する SHALL。実行時の container である `core` / `fullstack-html` / `fullstack-htmx` は `instanceOf` で論理要素に対応づける SHALL。
+
+`description` と関係ラベルは日本語で記述する SHALL。
+
 #### Scenario: 並行実装の対応関係がモデルから読み取れる
 
 - **WHEN** エージェントまたは開発者がモデルを参照する
@@ -29,7 +33,12 @@ PetClinic のリポジトリ構造を C4 モデルとして LikeC4 で記述し�
 #### Scenario: C4 の標準ビューに必要な関係が存在する
 
 - **WHEN** 開発者が `likec4 export json architecture` の結果を確認する
-- **THEN** System Context、Container、各アプリケーションと `core` の Component view、および observability / 並行実装 / composite build 依存の補助 view に、孤立ノードなく期待する関係がある
+- **THEN** System Context、Container、各アプリケーションと `core` の Component view、observability / 並行実装の補助 view、および composite build 構造の deployment view に、孤立ノードなく期待する関係がある
+
+#### Scenario: composite build の構造がモデルから読み取れる
+
+- **WHEN** エージェントまたは開発者がモデルを参照する
+- **THEN** どのディレクトリが `includeBuild` される独立したビルド単位か、および `fullstack-html` / `fullstack-htmx` が `core` を dependency substitution で取り込むことが、`settings.gradle.kts` を読まずに deployment view から分かる
 
 ### Requirement: モデルの構文検証
 
@@ -51,7 +60,7 @@ PetClinic のリポジトリ構造を C4 モデルとして LikeC4 で記述し�
 
 #### Scenario: 構造の変更に伴いモデルが更新される
 
-- **WHEN** エージェントが container の追加、container 間の依存方向の変更、外部 software system の追加・削除、または `core` の domain component の増減を伴う実装を行う
+- **WHEN** エージェントが container の追加、container 間の依存方向の変更、外部 software system の追加・削除、`core` の domain component の増減、または composite build 構成の変更を伴う実装を行う
 - **THEN** エージェントは対応する `.c4` ファイルを更新する
 
 #### Scenario: 構造を変えない変更ではモデルが更新されない

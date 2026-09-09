@@ -1,0 +1,9 @@
+// Gradle composite build 構造
+
+views {
+  deployment view buildStructure {
+    title 'Gradle composite build 構造'
+    include *
+    exclude htmlBuild -> htmxBuild
+  }
+}
