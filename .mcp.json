@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "likec4": {
+      "command": "npx",
+      "args": ["--no-install", "@likec4/mcp", "architecture", "--stdio", "--no-watch"],
+      "env": {
+        "LIKEC4_WORKSPACE": "architecture"
+      }
+    }
+  }
+}

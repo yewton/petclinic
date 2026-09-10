@@ -1,0 +1,84 @@
+// PetClinic の C4 モデル語彙。
+//
+// 要素種別は C4 の梯子（person -> softwareSystem -> container -> component）に
+// 従う。`database` と `library` は container の特化で、形状と色を変えるためだけに
+// 分けている。C4 の観点では、データストアも両アプリがコンパイル時に依存する共有
+// ライブラリも container である。個々のクラス（Controller / Repository /
+// エンティティ）は Code レベルであり、対象外とする。
+//
+// `buildUnit` は deployment model 側の種別で、Gradle composite build の
+// 独立したビルド単位（includeBuild される build）を表す。
+
+specification {
+  element person {
+    style {
+      shape person
+      color green
+    }
+  }
+  element softwareSystem {
+    style {
+      color primary
+    }
+  }
+  element container {
+    style {
+      color secondary
+    }
+  }
+  element database {
+    style {
+      shape cylinder
+      color amber
+    }
+  }
+  element library {
+    style {
+      shape component
+      color indigo
+    }
+  }
+  element component {
+    style {
+      shape component
+      color muted
+    }
+  }
+
+  deploymentNode buildUnit {
+    style {
+      color slate
+    }
+  }
+
+  relationship uses
+  relationship http {
+    technology 'HTTPS'
+  }
+  relationship persistence {
+    technology 'jOOQ over R2DBC'
+  }
+  relationship otlp {
+    technology 'OTLP'
+    line dotted
+    color red
+  }
+  relationship telemetry {
+    line dotted
+    color red
+  }
+  relationship correspondence {
+    line dotted
+    color green
+  }
+  relationship includeBuild
+
+  tag shared
+  tag parallel-implementation
+  tag fullstack-html {
+    color #4C78A8
+  }
+  tag fullstack-htmx {
+    color #F58518
+  }
+}

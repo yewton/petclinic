@@ -1,0 +1,27 @@
+// 補助ビュー — C4 の梯子には含まない
+
+views {
+  // 両アプリケーションから Grafana スタックへのテレメトリの流れ。
+  view observability {
+    title '観測性パイプライン'
+    include petclinic.htmlApp, petclinic.htmxApp
+    include grafana, grafana.*
+    exclude petclinic.htmlApp -> petclinic.htmxApp
+  }
+
+  // 外部 Grafana スタックの内部。この view があることで、他の view の
+  // `grafana` ノードにドリルダウン用のナビゲーションアイコンが表示される。
+  view grafanaStack of grafana {
+    title 'Grafana observability stack — 内部'
+    include *
+    include petclinic.htmlApp, petclinic.htmxApp
+    exclude petclinic.htmlApp -> petclinic.htmxApp
+  }
+
+  // fullstack-html と fullstack-htmx は機能同等の並行実装。
+  // correspondence 関係は機能の同等性を表すもので、依存関係ではない。
+  view parallelImplementation {
+    title '並行実装 — HTML と HTMX'
+    include petclinic.htmlApp, petclinic.htmxApp
+  }
+}

@@ -1,0 +1,10 @@
+// C4 レベル 2 — Container
+
+views {
+  view containers of petclinic {
+    title 'PetClinic — コンテナ'
+    include petOwner
+    include *
+    include grafana
+  }
+}

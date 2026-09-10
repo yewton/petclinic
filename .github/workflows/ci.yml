@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           submodules: recursive
+          fetch-depth: 0
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: 'temurin'
@@ -23,8 +24,48 @@ jobs:
         uses: gradle/actions/wrapper-validation@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
+      - name: Detect architecture-only push
+        id: scope
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # Run Gradle unless both commit objects and the changed-file list are
+          # trustworthy. This keeps force-pushes and unusual push payloads safe.
+          architecture_only=false
+          changed_files=""
+          resolved_range=false
+
+          if [[ -n "$AFTER_SHA" ]] && git cat-file -e "${AFTER_SHA}^{commit}" 2>/dev/null; then
+            if [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
+              if changed_files="$(git ls-tree -r --name-only "$AFTER_SHA")"; then
+                resolved_range=true
+              fi
+            elif [[ -n "$BEFORE_SHA" ]] && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+              if changed_files="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA")"; then
+                resolved_range=true
+              fi
+            fi
+          fi
+
+          if [[ "$resolved_range" == true && -n "$changed_files" ]]; then
+            architecture_only=true
+            while IFS= read -r path; do
+              [[ -z "$path" ]] && continue
+              if [[ ! "$path" =~ ^architecture/([^/]+/)*[^/]+\.c4$ ]]; then
+                architecture_only=false
+                break
+              fi
+            done <<< "$changed_files"
+          fi
+
+          echo "Resolved push range: $resolved_range"
+          echo "architecture_only=$architecture_only" >> "$GITHUB_OUTPUT"
       - name: Execute Gradle Build
         # Composite-build compilation exhausts the daemon's default 384 MiB metaspace when parallelized.
+        if: steps.scope.outputs.architecture_only != 'true'
         run: ./gradlew check --parallel --warning-mode all --build-cache --configuration-cache -Dorg.gradle.jvmargs="-Xmx512m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@a9170d5795813c01ab4901ffb045b52bab4ab09d # v6.5.0

@@ -1,0 +1,107 @@
+model {
+  petOwner = person 'Pet owner' {
+    description 'ペットを登録し、診察を予約する飼い主'
+  }
+
+  grafana = softwareSystem 'Grafana observability stack' {
+    description 'テレメトリを受信・可視化する外部の LGTM スタック'
+
+    alloy = container 'Alloy' {
+      description 'OpenTelemetry コレクター。テレメトリの受け口'
+      technology 'Grafana Alloy'
+    }
+    tempo = database 'Tempo' {
+      description 'トレースの保存'
+      technology 'Traces'
+    }
+    loki = database 'Loki' {
+      description 'ログの保存'
+      technology 'Logs'
+    }
+    mimir = database 'Mimir' {
+      description 'メトリクスの保存'
+      technology 'Metrics'
+    }
+    grafanaUi = container 'Grafana' {
+      description 'ダッシュボードと探索 UI'
+    }
+
+    alloy -[telemetry]-> tempo 'トレースを転送'
+    alloy -[telemetry]-> loki 'ログを転送'
+    alloy -[telemetry]-> mimir 'メトリクスを転送'
+    grafanaUi -[uses]-> tempo 'トレースを参照'
+    grafanaUi -[uses]-> loki 'ログを参照'
+    grafanaUi -[uses]-> mimir 'メトリクスを参照'
+  }
+
+  petclinic = softwareSystem 'PetClinic' {
+    description 'プレーン HTML 版と HTMX 版を並行実装した Spring PetClinic'
+
+    core = library 'Core library' {
+      #shared
+      description '両アプリケーションがコンパイル時に依存する共有ドメインロジック'
+      technology 'Kotlin, Spring WebFlux, jOOQ, R2DBC'
+
+      ownerDomain = component 'Owner ドメイン'
+      petDomain = component 'Pet ドメイン'
+      visitDomain = component 'Visit ドメイン'
+      vetDomain = component 'Vet ディレクトリ'
+      domainModel = component '共有ドメインモデル'
+
+      ownerDomain -[uses]-> domainModel
+      ownerDomain -[uses]-> petDomain
+      petDomain -[uses]-> domainModel
+      petDomain -[uses]-> visitDomain
+      visitDomain -[uses]-> domainModel
+      vetDomain -[uses]-> domainModel
+    }
+
+    htmlApp = container 'PetClinic HTML' {
+      #fullstack-html
+      #parallel-implementation
+      description 'フルページをサーバーレンダリングするアプリケーション'
+      technology 'Spring WebFlux, Thymeleaf'
+
+      htmlOwnerWeb = component 'Owner 画面'
+      htmlPetWeb = component 'Pet 画面'
+      htmlVisitWeb = component 'Visit 画面'
+      htmlVetWeb = component 'Vet 画面'
+    }
+
+    htmxApp = container 'PetClinic HTMX' {
+      #fullstack-htmx
+      #parallel-implementation
+      description 'HTMX の部分レンダリングを使うサーバーレンダリングアプリケーション'
+      technology 'Spring WebFlux, Thymeleaf, HTMX'
+
+      htmxOwnerWeb = component 'Owner 画面'
+      htmxPetWeb = component 'Pet 画面'
+      htmxVisitWeb = component 'Visit 画面'
+      htmxVetWeb = component 'Vet 画面'
+    }
+
+    db = database 'Database' {
+      description '飼い主・ペット・診察・獣医・専門分野を保持'
+      technology 'PostgreSQL 16 via R2DBC'
+    }
+
+    petOwner -[http]-> htmlApp '飼い主・ペット・診察を閲覧／管理'
+    petOwner -[http]-> htmxApp '飼い主・ペット・診察を閲覧／管理'
+
+    htmlOwnerWeb -[uses]-> ownerDomain
+    htmlPetWeb -[uses]-> petDomain
+    htmlVisitWeb -[uses]-> visitDomain
+    htmlVetWeb -[uses]-> vetDomain
+    htmxOwnerWeb -[uses]-> ownerDomain
+    htmxPetWeb -[uses]-> petDomain
+    htmxVisitWeb -[uses]-> visitDomain
+    htmxVetWeb -[uses]-> vetDomain
+
+    core -[persistence]-> db 'ドメインデータを読み書き'
+
+    htmlApp -[otlp]-> alloy 'トレース・ログ・メトリクスをエクスポート'
+    htmxApp -[otlp]-> alloy 'トレース・ログ・メトリクスをエクスポート'
+
+    htmlApp -[correspondence]-> htmxApp '同一の機能セット。ビルド・実行時の依存関係はない'
+  }
+}

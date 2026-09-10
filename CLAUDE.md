@@ -90,6 +90,10 @@ platforms/                         — version catalog (libs.versions.toml) and 
 references/                        — git submodules; spring-petclinic is the reference implementation
 ```
 
+### LikeC4 architecture model
+
+`architecture/` は PetClinic を C4 モデルで記述する単一の LikeC4 project である。要素は person → softwareSystem → container → component の梯子に従い、`specification.c4` / `model.c4` / `deployment.c4` / `views/`（`context` `containers` `components` `supplementary` `build`）に分かれる。`petclinic` software system は `htmlApp`・`htmxApp`・`db`（PostgreSQL）・`core`（共有ライブラリ。`library` 種別＝container の特化）の container を持ち、`core` 配下に owner/pet/visit/vet/model の domain component を置く。`htmlApp` と `htmxApp` は互いに依存せず、`correspondence` 関係で機能同等性のみを示す。外部の `grafana` observability stack と OTLP パイプラインも含む。`deployment.c4` は Gradle composite build の topology で、各 `buildUnit` が `includeBuild` される独立したビルド単位（`core` / `fullstack-html` / `fullstack-htmx` / `platforms` / `lint-logic` / `build-logic` / `build-logic-settings`）を表し、`buildStructure` view で可視化する。個々のクラス（Controller / Repository / エンティティ / テンプレート）は Code レベルで対象外。`description` と関係ラベルは日本語で書く。container の増減・依存方向の変更・外部 software system の追加または削除・core の domain component の増減・composite build 構成の変更を伴うときは更新し、`npx --no-install likec4 validate --json --no-layout architecture` を実行する。`--no-layout` は Graphviz/wasm と実行環境に依存するレイアウト差分を CI の判定から外し、構文・意味検証に集中するために使う。見た目は `npm run arch:start`（`likec4 start`）で全 view に孤立ノードや欠けたエッジがないことを確認する。tailnet 経由で共有するときは開発サーバーに `tailscale serve --bg --http=5173 5173` を一度張る。並行実装の手順と MCP の repository-relative 起動の詳細は `architecture-model` スキルを参照する。
+
 ルート `settings.gradle.kts` は `core`、`fullstack-html`、`fullstack-htmx` を `includeBuild` で取り込む。各アプリの `settings.gradle.kts` も `includeBuild("../core")` を宣言し、`implementation("net.yewton.petclinic:lib")` で core を参照する (Gradle が composite build の dependency substitution を行う)。
 
 ### Maven リポジトリ

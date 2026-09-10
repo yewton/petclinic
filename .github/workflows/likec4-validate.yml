@@ -1,0 +1,29 @@
+name: Validate LikeC4
+
+on:
+  push:
+    paths:
+      - 'architecture/**/*.c4'
+      - 'architecture/**/likec4.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.mcp.json'
+      - '.github/workflows/likec4-validate.yml'
+
+permissions: {}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22.22.3'
+          cache: npm
+      - name: Install LikeC4 toolchain
+        run: npm ci
+      - name: Validate architecture model
+        run: npx --no-install likec4 validate --json --no-layout architecture

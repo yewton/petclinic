@@ -1,0 +1,22 @@
+// C4 レベル 3 — Component
+
+views {
+  view htmlComponents of petclinic.htmlApp {
+    title 'PetClinic HTML — コンポーネント'
+    include *
+    include petclinic.core, petclinic.core.*
+  }
+
+  view htmxComponents of petclinic.htmxApp {
+    title 'PetClinic HTMX — コンポーネント'
+    include *
+    include petclinic.core, petclinic.core.*
+  }
+
+  view coreComponents of petclinic.core {
+    title 'PetClinic Core — コンポーネント'
+    include *
+    include petclinic.db
+    exclude petclinic.htmlApp, petclinic.htmxApp
+  }
+}
