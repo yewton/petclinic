@@ -39,10 +39,12 @@ description: PetClinic の container 構成、外部システム、core のド�
 - `architecture/views/context.c4`: System Context（C4 L1）
 - `architecture/views/containers.c4`: Container（C4 L2）
 - `architecture/views/components.c4`: Component（C4 L3。html / htmx / core）
-- `architecture/views/supplementary.c4`: observability パイプライン、並行実装の correspondence
+- `architecture/views/supplementary.c4`: observability パイプライン、`grafana` 内部、並行実装の correspondence
 - `architecture/views/build.c4`: `buildStructure` deployment view（composite build 構造）
 
 `core` は C4 では共有ライブラリなので厳密には container ではないが、両アプリがコンパイル時に依存する独立したビルド単位なので `library` 種別（container の特化）として `petclinic` 内に置く。PostgreSQL は `db`（`database` 種別）で、`core -[persistence]-> db` を描く。両アプリから DB への直接エッジは張らない。
+
+子要素を持つ要素には `view <name> of <element>` を 1 つ用意する。この view があると、他の view でその要素ノードにドリルダウン用のナビゲーションアイコンが出る。`petclinic` / `htmlApp` / `htmxApp` / `core` / `grafana` はいずれも専用 view を持つ。
 
 ## 検証と目視確認
 
@@ -50,7 +52,9 @@ description: PetClinic の container 構成、外部システム、core のド�
 npx --no-install likec4 validate --json --no-layout architecture
 ```
 
-`--no-layout` は CI の責務を DSL の構文・意味検証に限定するために付ける。レイアウトは Graphviz/wasm と実行環境に依存し、座標を成果物として管理していないため、レイアウト差分を CI の失敗条件にしない。見た目は `npx --no-install likec4 start architecture` で開発サーバーを起動し、`index`（System Context）、`containers`、`htmlComponents` / `htmxComponents` / `coreComponents`、`observability` / `parallelImplementation`、`buildStructure`（composite build）の各 view に孤立ノードや欠けたエッジがないことをブラウザで確認する。
+`--no-layout` は CI の責務を DSL の構文・意味検証に限定するために付ける。レイアウトは Graphviz/wasm と実行環境に依存し、座標を成果物として管理していないため、レイアウト差分を CI の失敗条件にしない。見た目は `npm run arch:start`（= `likec4 start architecture --listen 127.0.0.1 --port 5173`）で開発サーバーを起動し、`index`（System Context）、`containers`、`htmlComponents` / `htmxComponents` / `coreComponents`、`observability` / `grafanaStack` / `parallelImplementation`、`buildStructure`（composite build）の各 view に孤立ノードや欠けたエッジがないことをブラウザで確認する。
+
+tailnet 経由で共有するときは、この開発サーバーに対して `tailscale serve --bg --http=5173 5173` を一度実行しておくと `http://<host>.<tailnet>.ts.net:5173/` で見られる（serve の設定は tailscaled 再起動をまたいで残る。開発サーバー自体は起動しておく必要がある）。
 
 MCP は repository root を current working directory として起動する Claude Code / Codex の stdio 設定を対象にする。`.mcp.json` はクライアント固有の `${workspaceFolder}` 展開に依存せず、相対ワークスペース `architecture` とローカル npm パッケージを使う。手動の起動確認は次のコマンドで行う。
 

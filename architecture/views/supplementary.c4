@@ -9,6 +9,15 @@ views {
     exclude petclinic.htmlApp -> petclinic.htmxApp
   }
 
+  // 外部 Grafana スタックの内部。この view があることで、他の view の
+  // `grafana` ノードにドリルダウン用のナビゲーションアイコンが表示される。
+  view grafanaStack of grafana {
+    title 'Grafana observability stack — 内部'
+    include *
+    include petclinic.htmlApp, petclinic.htmxApp
+    exclude petclinic.htmlApp -> petclinic.htmxApp
+  }
+
   // fullstack-html と fullstack-htmx は機能同等の並行実装。
   // correspondence 関係は機能の同等性を表すもので、依存関係ではない。
   view parallelImplementation {

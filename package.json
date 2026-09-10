@@ -1,6 +1,10 @@
 {
   "name": "petclinic",
   "private": true,
+  "scripts": {
+    "arch:validate": "likec4 validate --json --no-layout architecture",
+    "arch:start": "likec4 start architecture --listen 127.0.0.1 --port 5173"
+  },
   "devDependencies": {
     "@likec4/mcp": "1.59.3",
     "likec4": "1.59.3"

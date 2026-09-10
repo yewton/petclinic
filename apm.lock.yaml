@@ -1,5 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-09-09T23:19:28.246422+00:00'
+generated_at: '2026-09-10T01:23:04.802307+00:00'
 apm_version: 0.29.0
 dependencies:
 - repo_url: _local/architecture-model
@@ -12,8 +12,8 @@ dependencies:
   - .claude/skills/architecture-model
   - .claude/skills/architecture-model/SKILL.md
   deployed_file_hashes:
-    .agents/skills/architecture-model/SKILL.md: sha256:a967e4ec47c1d01d09f481870ad1b7a5cec77e857afbc5d4f060f2c1a3c80421
-    .claude/skills/architecture-model/SKILL.md: sha256:a967e4ec47c1d01d09f481870ad1b7a5cec77e857afbc5d4f060f2c1a3c80421
+    .agents/skills/architecture-model/SKILL.md: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
+    .claude/skills/architecture-model/SKILL.md: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
   source: local
   local_path: ./.apm/skills/architecture-model
 - repo_url: _local/spring-boot-upgrade
@@ -63,7 +63,7 @@ deployments:
   - ./.apm/skills/architecture-model
   - .
   active_owner: ./.apm/skills/architecture-model
-  content_hash: sha256:a967e4ec47c1d01d09f481870ad1b7a5cec77e857afbc5d4f060f2c1a3c80421
+  content_hash: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
 - kind: project-relative
   target: claude
   value: .claude/skills/spring-boot-upgrade
@@ -113,7 +113,7 @@ deployments:
   - ./.apm/skills/architecture-model
   - .
   active_owner: ./.apm/skills/architecture-model
-  content_hash: sha256:a967e4ec47c1d01d09f481870ad1b7a5cec77e857afbc5d4f060f2c1a3c80421
+  content_hash: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
 - kind: project-relative
   target: codex
   value: .agents/skills/spring-boot-upgrade
@@ -167,11 +167,11 @@ local_deployed_files:
 - .claude/skills/spring-boot-upgrade/scripts/session-start.sh
 - .codex/hooks/petclinic/session-start.sh
 local_deployed_file_hashes:
-  .agents/skills/architecture-model/SKILL.md: sha256:a967e4ec47c1d01d09f481870ad1b7a5cec77e857afbc5d4f060f2c1a3c80421
+  .agents/skills/architecture-model/SKILL.md: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
   .agents/skills/spring-boot-upgrade/SKILL.md: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
   .agents/skills/spring-boot-upgrade/scripts/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
   .claude/hooks/petclinic/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
-  .claude/skills/architecture-model/SKILL.md: sha256:a967e4ec47c1d01d09f481870ad1b7a5cec77e857afbc5d4f060f2c1a3c80421
+  .claude/skills/architecture-model/SKILL.md: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
   .claude/skills/spring-boot-upgrade/SKILL.md: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
   .claude/skills/spring-boot-upgrade/scripts/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
   .codex/hooks/petclinic/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
