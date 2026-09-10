@@ -1,0 +1,16 @@
+specification {
+  element person { style { shape person color green } }
+  element softwareSystem { style { color primary } }
+  element container { style { color secondary } }
+  element database { style { shape cylinder color amber } }
+  element component { style { shape component color muted } }
+
+  relationship uses
+  relationship http { technology 'HTTPS' }
+  relationship persistence
+  relationship handoff { line dotted }
+
+  tag internal { color indigo }
+  tag public { color green }
+  tag restricted { color amber }
+}

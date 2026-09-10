@@ -1,0 +1,5 @@
+{
+  "$schema": "https://likec4.dev/schemas/config.json",
+  "name": "petclinic-clinic-care-to-be",
+  "title": "PetClinic clinic-care workflow To-Be"
+}
