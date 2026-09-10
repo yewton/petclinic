@@ -1,0 +1,35 @@
+views {
+  view systemContext of petclinic {
+    title 'PetClinic To-Be — システムコンテキスト'
+    include petOwner, receptionist, veterinarian, clinicAdministrator
+    include petclinic
+    include staffIdentity, ownerIdentity, communicationProvider, paymentProvider, accountingSystem, laboratorySystem
+  }
+
+  view containers of petclinic {
+    title 'PetClinic To-Be — コンテナと信頼境界'
+    include petOwner, receptionist, veterinarian, clinicAdministrator
+    include *
+    include staffIdentity, ownerIdentity, communicationProvider, paymentProvider, accountingSystem, laboratorySystem
+  }
+
+  view careApiComponents of petclinic.careApi {
+    title 'Care API — 業務コンポーネント'
+    include *
+    include petclinic.clinicData
+  }
+
+  dynamic view ownerJourney {
+    title '飼い主の予約要求、情報公開、通知の流れ'
+    petOwner -> petclinic.ownerPortal '予約要求・問診を送信'
+    petclinic.ownerPortal -> ownerIdentity '飼い主を認証'
+    petclinic.ownerPortal -> petclinic.ownerCareApi '飼い主向け操作を実行'
+    petclinic.ownerCareApi -> petclinic.careApi '予約要求・問診を連携'
+    veterinarian -> petclinic.clinicOperationsWeb '診療要約の公開を確定'
+    petclinic.clinicOperationsWeb -> petclinic.careApi '公開可否を記録'
+    petclinic.careApi -> petclinic.notificationService '公開済み診療要約・期限イベントを渡す'
+    petclinic.notificationService -> petclinic.ownerCareApi '同意を確認し、配信結果を記録'
+    petclinic.notificationService -> communicationProvider '飼い主へ通知を配信'
+    communicationProvider -> petOwner 'メール・SMS を配信'
+  }
+}
