@@ -1,39 +1,20 @@
 lockfile_version: '1'
-generated_at: '2026-09-10T01:23:04.802307+00:00'
-apm_version: 0.29.0
+apm_version: 0.35.0
 dependencies:
 - repo_url: _local/architecture-model
   name: architecture-model
   version: unknown
   package_type: claude_skill
-  deployed_files:
-  - .agents/skills/architecture-model
-  - .agents/skills/architecture-model/SKILL.md
-  - .claude/skills/architecture-model
-  - .claude/skills/architecture-model/SKILL.md
-  deployed_file_hashes:
-    .agents/skills/architecture-model/SKILL.md: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
-    .claude/skills/architecture-model/SKILL.md: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
   source: local
   local_path: ./.apm/skills/architecture-model
+  content_hash: sha256:f9c65f2d6f9c41b7e5da26c60d7da67161073caee943894cd18bc390624936b3
 - repo_url: _local/spring-boot-upgrade
   name: spring-boot-upgrade
   version: unknown
   package_type: claude_skill
-  deployed_files:
-  - .agents/skills/spring-boot-upgrade
-  - .agents/skills/spring-boot-upgrade/SKILL.md
-  - .agents/skills/spring-boot-upgrade/scripts/session-start.sh
-  - .claude/skills/spring-boot-upgrade
-  - .claude/skills/spring-boot-upgrade/SKILL.md
-  - .claude/skills/spring-boot-upgrade/scripts/session-start.sh
-  deployed_file_hashes:
-    .agents/skills/spring-boot-upgrade/SKILL.md: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
-    .agents/skills/spring-boot-upgrade/scripts/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
-    .claude/skills/spring-boot-upgrade/SKILL.md: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
-    .claude/skills/spring-boot-upgrade/scripts/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
   source: local
   local_path: ./.apm/skills/spring-boot-upgrade
+  content_hash: sha256:10d6b2231c71e6ed28a7283e95f5a34f107ccf0c605b14d114eda9eace8245ef
 deployments:
 - kind: project-relative
   target: claude
@@ -50,9 +31,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/architecture-model
   - .
-  active_owner: ./.apm/skills/architecture-model
+  active_owner: .
   content_hash: null
 - kind: project-relative
   target: claude
@@ -60,9 +40,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/architecture-model
   - .
-  active_owner: ./.apm/skills/architecture-model
+  active_owner: .
   content_hash: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
 - kind: project-relative
   target: claude
@@ -70,9 +49,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/spring-boot-upgrade
   - .
-  active_owner: ./.apm/skills/spring-boot-upgrade
+  active_owner: .
   content_hash: null
 - kind: project-relative
   target: claude
@@ -80,9 +58,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/spring-boot-upgrade
   - .
-  active_owner: ./.apm/skills/spring-boot-upgrade
+  active_owner: .
   content_hash: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
 - kind: project-relative
   target: claude
@@ -90,9 +67,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/spring-boot-upgrade
   - .
-  active_owner: ./.apm/skills/spring-boot-upgrade
+  active_owner: .
   content_hash: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
 - kind: project-relative
   target: codex
@@ -100,9 +76,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/architecture-model
   - .
-  active_owner: ./.apm/skills/architecture-model
+  active_owner: .
   content_hash: null
 - kind: project-relative
   target: codex
@@ -110,9 +85,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/architecture-model
   - .
-  active_owner: ./.apm/skills/architecture-model
+  active_owner: .
   content_hash: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
 - kind: project-relative
   target: codex
@@ -120,9 +94,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/spring-boot-upgrade
   - .
-  active_owner: ./.apm/skills/spring-boot-upgrade
+  active_owner: .
   content_hash: null
 - kind: project-relative
   target: codex
@@ -130,9 +103,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/spring-boot-upgrade
   - .
-  active_owner: ./.apm/skills/spring-boot-upgrade
+  active_owner: .
   content_hash: sha256:55a951267031fe8e0d96209c562ab0e3da8d0d0c729423c62abe1a80982311e0
 - kind: project-relative
   target: codex
@@ -140,9 +112,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - ./.apm/skills/spring-boot-upgrade
   - .
-  active_owner: ./.apm/skills/spring-boot-upgrade
+  active_owner: .
   content_hash: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
 - kind: project-relative
   target: codex
