@@ -1,0 +1,79 @@
+model {
+  petOwner = person '飼い主' { description '予約、受診準備、診療後の継続ケアを行う' }
+  receptionist = person '受付・動物看護師' { description '予約、来院、会計、フォローアップを扱う' }
+  veterinarian = person '獣医師' { description '診療、説明、次回対応と飼い主への情報公開を確定する' }
+  clinicAdministrator = person '病院管理者' { description 'スタッフ、権限、診療所設定と運用状況を管理する' }
+
+  staffIdentity = softwareSystem 'スタッフ認証基盤' { description '院内スタッフの本人確認と権限情報を提供する' }
+  ownerIdentity = softwareSystem '飼い主認証基盤' { description '飼い主の本人確認を提供する' }
+  communicationProvider = softwareSystem '通知サービス' { description 'メール・SMS などを飼い主へ配信する外部サービス' }
+  paymentProvider = softwareSystem '決済サービス' { description '決済を処理する外部サービス' }
+  accountingSystem = softwareSystem '会計システム' { description '会計・領収書・経営管理を担う外部システム' }
+  laboratorySystem = softwareSystem '検査・画像システム' { description '検査オーダーと結果を扱う外部システム' }
+
+  petclinic = softwareSystem 'PetClinic' {
+    description '病院が導入・運用する、伴侶動物の予約から継続ケアまでを支援するクリニック情報システム'
+    clinicOperationsWeb = container 'Clinic Operations Web' {
+      #internal
+      description '受付、診療、会計、フォローアップ、管理を提供する院内スタッフ向けアプリケーション'
+    }
+    ownerPortal = container 'Owner Portal' {
+      #public
+      description '飼い主が自分のペットの予約、問診、公開済み診療要約、請求、継続ケアを確認する公開アプリケーション'
+    }
+    ownerCareApi = container 'Owner Care API' {
+      #public
+      description '飼い主向けに、予約要求、問診、公開済みの診療・請求情報だけを提供する公開契約境界'
+    }
+    careApi = container 'Care API' {
+      #internal
+      description '予約、来院、診療、請求、継続ケアの正本を扱い、公開可否を判定する業務 API'
+      accessAudit = component 'アクセス・監査'
+      partyPatient = component '飼い主・患者管理'
+      scheduling = component '予約・来院管理'
+      encounter = component '診療・公開管理'
+      billing = component '請求・支払管理'
+      continuity = component '継続ケア管理'
+      integration = component '外部連携管理'
+      domainModel = component '共有ドメインモデル'
+      accessAudit -[uses]-> domainModel
+      partyPatient -[uses]-> domainModel
+      scheduling -[uses]-> partyPatient
+      scheduling -[uses]-> domainModel
+      encounter -[uses]-> scheduling
+      encounter -[uses]-> partyPatient
+      encounter -[uses]-> domainModel
+      billing -[uses]-> encounter
+      continuity -[uses]-> encounter
+      continuity -[uses]-> partyPatient
+      integration -[uses]-> billing
+      integration -[uses]-> encounter
+    }
+    clinicData = database 'Clinic Care Database' { #restricted description '飼い主・ペット・予約・診療・請求・継続ケア・監査の正本を保持する' }
+    engagementData = database 'Engagement Data Store' { #restricted description '飼い主の同意、連絡希望、通知の配信・失敗履歴を保持する' }
+    notificationService = container 'Notification Service' { #internal description '公開済みの診療・予定情報と飼い主の同意に基づいて通知を配信する' }
+    clinicalIntegration = container 'Clinical Integration Gateway' { #internal description '決済、会計、検査・画像との連携を隔離する' }
+
+    receptionist -[http]-> clinicOperationsWeb '予約、来院、会計、フォローアップを管理'
+    veterinarian -[http]-> clinicOperationsWeb '診療、説明、公開可否を確定'
+    clinicAdministrator -[http]-> clinicOperationsWeb '権限と診療所設定を管理'
+    clinicOperationsWeb -[uses]-> staffIdentity 'スタッフを認証'
+    clinicOperationsWeb -[uses]-> careApi '院内業務を実行'
+    careApi -[uses]-> staffIdentity 'スタッフトークンと権限を検証'
+    petOwner -[http]-> ownerPortal '予約、問診、公開済み情報、継続ケアを確認'
+    ownerPortal -[uses]-> ownerIdentity '飼い主を認証'
+    ownerPortal -[uses]-> ownerCareApi '飼い主向け操作を実行'
+    ownerCareApi -[uses]-> ownerIdentity '飼い主トークンを検証'
+    ownerCareApi -[uses]-> careApi '予約要求、問診、公開済み情報だけを連携'
+    ownerCareApi -[persistence]-> engagementData '同意、連絡希望、配信履歴を管理'
+    careApi -[persistence]-> clinicData '診療所業務データを読み書き'
+    careApi -[handoff]-> notificationService '公開済み診療要約・期限イベントを渡す'
+    notificationService -[uses]-> ownerCareApi '同意を確認し、配信結果を記録'
+    notificationService -[uses]-> communicationProvider '飼い主へ通知を配信'
+    communicationProvider -[uses]-> petOwner 'メール・SMS を配信'
+    clinicalIntegration -[uses]-> careApi '外部連携の状態を同期'
+    clinicalIntegration -[uses]-> paymentProvider '決済を連携'
+    clinicalIntegration -[uses]-> accountingSystem '会計を連携'
+    clinicalIntegration -[uses]-> laboratorySystem '検査・画像を連携'
+  }
+}
