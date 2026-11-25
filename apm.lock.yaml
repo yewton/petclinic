@@ -1,6 +1,9 @@
-lockfile_version: '1'
-generated_at: '2026-09-10T01:23:04.802307+00:00'
-apm_version: 0.29.0
+lockfile_version: '4'
+generated_at: '2026-11-25T19:38:06.959339+00:00'
+apm_version: 0.39.0
+manifest_targets:
+- claude
+- codex
 dependencies:
 - repo_url: _local/architecture-model
   name: architecture-model
@@ -16,6 +19,7 @@ dependencies:
     .claude/skills/architecture-model/SKILL.md: sha256:aa55cdbfaa5143aee44323ca7806f65c104b31c24675031a69ba133fa446e796
   source: local
   local_path: ./.apm/skills/architecture-model
+  content_hash: sha256:931c75747684285520f89afa2fefe92ed8029a375628a1292d2a9382d05a9f0d
 - repo_url: _local/spring-boot-upgrade
   name: spring-boot-upgrade
   version: unknown
@@ -34,6 +38,7 @@ dependencies:
     .claude/skills/spring-boot-upgrade/scripts/session-start.sh: sha256:684b0cd4e01d5be27bdb84121244a305786bcc7ebf3cff7bdf920870e0ccf9b4
   source: local
   local_path: ./.apm/skills/spring-boot-upgrade
+  content_hash: sha256:2804c785a2c5cdacd48718516a4bc13ee0cb1f08b36f746a372cfb88c757103c
 deployments:
 - kind: project-relative
   target: claude
